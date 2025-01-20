@@ -8,7 +8,8 @@ import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.NAVXSubsystem;
+//import frc.robot.subsystems.NAVXSubsystem;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -21,7 +22,7 @@ import frc.robot.subsystems.NAVXSubsystem;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  private NAVXSubsystem ahrs;
+  //private NAVXSubsystem ahrs;
   private RobotContainer m_robotContainer;
 
   /**
@@ -38,7 +39,7 @@ public class Robot extends TimedRobot {
     for (int port = 5800; port <= 5809; port++) {
       PortForwarder.add(port, "limelight.local", port);
     }
-    ahrs = new NAVXSubsystem();
+    //ahrs = new NAVXSubsystem();
   }
 
   /**
@@ -60,7 +61,10 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods. This must be called from the
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
-    System.out.println(ahrs.getAngle());
+    //System.out.println(ahrs.getAngle());
+    if(m_robotContainer.m_driverController.getBButton()){
+      m_robotContainer.m_robotDrive.zeroHeading();
+    }
     CommandScheduler.getInstance().run();
   }
 
