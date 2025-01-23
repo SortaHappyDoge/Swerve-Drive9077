@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems;
 
-import com.kauailabs.navx.frc.AHRS;
+
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj.SPI;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import com.ctre.phoenix6.hardware.Pigeon2;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -46,7 +48,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
   //private final ADIS16470_IMU m_gyro = new ADIS16470_IMU(); When the imu is back...
-  private final AHRS ahrs;
   // Slew rate filter variables for controlling lateral acceleration
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
@@ -69,15 +70,15 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    ahrs = new AHRS(SPI.Port.kMXP);
+
   }
 
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    System.out.println(-ahrs.getAngle());
+    System.out.println(0);  // edit for pigeon
     m_odometry.update(
-        Rotation2d.fromDegrees(-ahrs.getAngle()), //m_gyro.getAngle(IMUAxis.kZ) when the imu is back
+        Rotation2d.fromDegrees(-0), // edit for pigeon
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -102,7 +103,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
-        Rotation2d.fromDegrees(-ahrs.getAngle()), //m_gyro.getAngle(IMUAxis.kZ) when the imu is back
+        Rotation2d.fromDegrees(-0), // edit for pigeon
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -182,7 +183,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(-ahrs.getAngle())) //m_gyro.getAngle(IMUAxis.kZ) when the imu is back
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(-0)) // edit for pigeon
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -227,7 +228,7 @@ public class DriveSubsystem extends SubsystemBase {
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     //m_gyro.reset();
-    ahrs.reset();
+    //ahrs.reset(); // edit for pigeon
   }
 
   /**
@@ -236,7 +237,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(-ahrs.getAngle()).getDegrees(); //m_gyro.getAngle(IMUAxis.kZ) when the imu is back
+    return Rotation2d.fromDegrees(-0).getDegrees(); // edit for pigeon
   }
 
   /**
