@@ -48,7 +48,8 @@ public class MAXSwerveModule {
     m_drivingSparkMax = new SparkMax(drivingCANId, MotorType.kBrushless);
     k_drivingSparkMaxConfig = new SparkMaxConfig();
     k_drivingSparkMaxConfig
-      .idleMode(ModuleConstants.kDrivingMotorIdleMode);
+      .idleMode(ModuleConstants.kDrivingMotorIdleMode)
+      .smartCurrentLimit(ModuleConstants.kDrivingMotorCurrentLimit);
     k_drivingSparkMaxConfig.encoder
       .positionConversionFactor(ModuleConstants.kDrivingEncoderPositionFactor)
       .velocityConversionFactor(ModuleConstants.kDrivingEncoderVelocityFactor);
@@ -66,7 +67,8 @@ public class MAXSwerveModule {
     k_turningSparkMaxConfig = new SparkMaxConfig();
     k_turningSparkMaxConfig
       .inverted(ModuleConstants.kTurningEncoderInverted)
-      .idleMode(ModuleConstants.kTurningMotorIdleMode);
+      .idleMode(ModuleConstants.kTurningMotorIdleMode)
+      .smartCurrentLimit(ModuleConstants.kTurningMotorCurrentLimit);
     k_turningSparkMaxConfig.encoder
       .positionConversionFactor(ModuleConstants.kTurningEncoderPositionFactor)
       .velocityConversionFactor(ModuleConstants.kTurningEncoderVelocityFactor);

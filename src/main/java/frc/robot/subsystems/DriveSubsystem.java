@@ -16,38 +16,40 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.SPI;
-//import edu.wpi.first.wpilibj.ADIS16470_IMU;
-//import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
+
+
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.Pigeon2;;
 
 public class DriveSubsystem extends SubsystemBase {
+  // Configure Pigeon 2.0 in Tuner X for ID, default roborio canbus "rio"
+  private final Pigeon2 pigeon2 = new Pigeon2(0, "rio");  
+
+
   // Create MAXSwerveModules
-  private final MAXSwerveModuleOLD m_frontLeft = new MAXSwerveModuleOLD(
+  private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftChassisAngularOffset);
 
-  private final MAXSwerveModuleOLD m_frontRight = new MAXSwerveModuleOLD(
+  private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightChassisAngularOffset);
 
-  private final MAXSwerveModuleOLD m_rearLeft = new MAXSwerveModuleOLD(
+  private final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kBackLeftChassisAngularOffset);
 
-  private final MAXSwerveModuleOLD m_rearRight = new MAXSwerveModuleOLD(
+  private final MAXSwerveModule m_rearRight = new MAXSwerveModule(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kBackRightChassisAngularOffset);
 
-  // The gyro sensor
-  //private final ADIS16470_IMU m_gyro = new ADIS16470_IMU(); When the imu is back...
   // Slew rate filter variables for controlling lateral acceleration
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
@@ -76,9 +78,9 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    System.out.println(0);  // edit for pigeon
+    System.out.println(pigeon2.getYaw().getValueAsDouble());  // edit for pigeon
     m_odometry.update(
-        Rotation2d.fromDegrees(-0), // edit for pigeon
+        Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()), // edit for pigeon
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -103,7 +105,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
-        Rotation2d.fromDegrees(-0), // edit for pigeon
+        Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()), // edit for pigeon
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -183,7 +185,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(-0)) // edit for pigeon
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble())) // edit for pigeon
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -229,6 +231,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void zeroHeading() {
     //m_gyro.reset();
     //ahrs.reset(); // edit for pigeon
+    pigeon2.reset();
   }
 
   /**
@@ -237,7 +240,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(-0).getDegrees(); // edit for pigeon
+    return Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()).getDegrees(); // edit for pigeon
   }
 
   /**
