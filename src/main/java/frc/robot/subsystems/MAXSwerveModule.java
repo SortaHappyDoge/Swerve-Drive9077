@@ -20,6 +20,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 
 import frc.robot.Constants.ModuleConstants;
 
+
 public class MAXSwerveModule {
   private final SparkMax m_drivingSparkMax;
   private final SparkMaxConfig k_drivingSparkMaxConfig;
@@ -56,6 +57,7 @@ public class MAXSwerveModule {
     k_drivingSparkMaxConfig.closedLoop
       .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
       .pid(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD)
+      .velocityFF(1/ModuleConstants.kDriveWheelFreeSpeedRps)
       .outputRange(ModuleConstants.kDrivingMinOutput, ModuleConstants.kDrivingMaxOutput);
     m_drivingSparkMax.configure(k_drivingSparkMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_drivingEncoder = m_drivingSparkMax.getEncoder();
@@ -66,10 +68,10 @@ public class MAXSwerveModule {
     m_turningSparkMax = new SparkMax(turningCANId, MotorType.kBrushless);
     k_turningSparkMaxConfig = new SparkMaxConfig();
     k_turningSparkMaxConfig
-      .inverted(ModuleConstants.kTurningEncoderInverted)
       .idleMode(ModuleConstants.kTurningMotorIdleMode)
       .smartCurrentLimit(ModuleConstants.kTurningMotorCurrentLimit);
-    k_turningSparkMaxConfig.encoder
+    k_turningSparkMaxConfig.absoluteEncoder
+      .inverted(ModuleConstants.kTurningEncoderInverted)
       .positionConversionFactor(ModuleConstants.kTurningEncoderPositionFactor)
       .velocityConversionFactor(ModuleConstants.kTurningEncoderVelocityFactor);
     k_turningSparkMaxConfig.closedLoop

@@ -37,7 +37,7 @@ public class RobotContainer {
 
   // The driver's controller
   public XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-
+  
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -51,10 +51,10 @@ public class RobotContainer {
         // Turning is controlled by the X axis of the right stick.
         new RunCommand(
             () -> m_robotDrive.drive(
-                -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-                true, true),
+                -MathUtil.applyDeadband(m_driverController.getLeftY()*((m_driverController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getLeftX()*((m_driverController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getRawAxis(2)*0.7, OIConstants.kDriveDeadband*3),
+                true),
             m_robotDrive));
         
   }
@@ -73,7 +73,15 @@ public class RobotContainer {
         .whileTrue(new RunCommand(
             () -> m_robotDrive.setX(),
             m_robotDrive));
-  }
+    new JoystickButton(m_driverController, 12)
+        .onTrue(new RunCommand(
+            () -> m_robotDrive.zeroHeading(), 
+            m_robotDrive));
+    new JoystickButton(m_driverController, 3)
+        .onTrue(new RunCommand(
+            () -> m_robotDrive.toggleFieldRelative(),
+             m_robotDrive));
+}
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
@@ -118,6 +126,6 @@ public class RobotContainer {
     m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
 
     // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false, false));
+    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
   }
 }

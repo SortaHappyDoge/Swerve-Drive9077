@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,17 +17,21 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.SPI;
-
-
+import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import java.util.Vector;
 
 import com.ctre.phoenix6.hardware.Pigeon2;;
 
 public class DriveSubsystem extends SubsystemBase {
   // Configure Pigeon 2.0 in Tuner X for ID, default roborio canbus "rio"
   private final Pigeon2 pigeon2 = new Pigeon2(0, "rio");  
+
+  private boolean fieldRelative = true;
 
 
   // Create MAXSwerveModules
@@ -54,6 +59,8 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
+  public Pose2d m_robotPose; // Pose of the robot compared to the field 
+  //private final SwerveDrivePoseEstimator m_PoseEstimator;
 
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
@@ -72,13 +79,19 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-
+    int[] validIDs = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22};
+    LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
+    //m_PoseEstimator = new SwerveDrivePoseEstimator(DriveConstants.kDriveKinematics, pigeon2.getYaw(), null, m_robotPose)
   }
 
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
     System.out.println(pigeon2.getYaw().getValueAsDouble());  // edit for pigeon
+    LimelightHelpers.SetRobotOrientation("limelight", 
+    pigeon2.getYaw().getValueAsDouble(), pigeon2.getAngularVelocityYWorld().getValueAsDouble(), 
+    pigeon2.getPitch().getValueAsDouble(), pigeon2.getAngularVelocityZWorld().getValueAsDouble(), 
+    pigeon2.getRoll().getValueAsDouble(), pigeon2.getAngularVelocityXWorld().getValueAsDouble());
     m_odometry.update(
         Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()), // edit for pigeon
         new SwerveModulePosition[] {
@@ -125,8 +138,7 @@ public class DriveSubsystem extends SubsystemBase {
    *                      field.
    * @param rateLimit     Whether to enable rate limiting for smoother control.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-    
+  public void drive(double xSpeed, double ySpeed, double rot, boolean rateLimit) {
     double xSpeedCommanded;
     double ySpeedCommanded;
 
@@ -205,6 +217,10 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
   }
 
+  public void toggleFieldRelative(){
+    fieldRelative = !fieldRelative;
+  }
+
   /**
    * Sets the swerve ModuleStates.
    *
@@ -229,8 +245,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
-    //m_gyro.reset();
-    //ahrs.reset(); // edit for pigeon
     pigeon2.reset();
   }
 
@@ -249,6 +263,6 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return 0 * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+    return pigeon2.getAngularVelocityZWorld().getValueAsDouble() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 }
