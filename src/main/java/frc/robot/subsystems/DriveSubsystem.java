@@ -33,7 +33,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   private boolean fieldRelative = true;
 
-
   // Create MAXSwerveModules
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
