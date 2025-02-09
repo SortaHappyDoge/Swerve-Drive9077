@@ -20,9 +20,12 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
+import java.time.Instant;
 import java.util.List;
 
 /*
@@ -34,7 +37,7 @@ import java.util.List;
 public class RobotContainer {
   // The robot's subsystems
   public final DriveSubsystem m_robotDrive = new DriveSubsystem();
-
+  public final AutonomousCommands autonomousCommands = new AutonomousCommands(m_robotDrive); // Pass m_robotDrive
   // The driver's controller
   public XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   
@@ -53,7 +56,7 @@ public class RobotContainer {
             () -> m_robotDrive.drive(
                 -MathUtil.applyDeadband(m_driverController.getLeftY()*((m_driverController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
                 -MathUtil.applyDeadband(m_driverController.getLeftX()*((m_driverController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_driverController.getRawAxis(2)*0.7, OIConstants.kDriveDeadband*3),
+                -MathUtil.applyDeadband((m_driverController.getRawAxis(2))*0.9, OIConstants.kDriveDeadband*3),
                 true),
             m_robotDrive));
         
@@ -74,13 +77,21 @@ public class RobotContainer {
             () -> m_robotDrive.setX(),
             m_robotDrive));
     new JoystickButton(m_driverController, 12)
-        .onTrue(new RunCommand(
+        .onTrue(new InstantCommand(
             () -> m_robotDrive.zeroHeading(), 
             m_robotDrive));
     new JoystickButton(m_driverController, 3)
-        .onTrue(new RunCommand(
+        .onTrue(new InstantCommand(
             () -> m_robotDrive.toggleFieldRelative(),
-             m_robotDrive));
+            m_robotDrive));
+    new JoystickButton(m_driverController, 1)
+        .onTrue(new InstantCommand(
+            () -> autonomousCommands.ResetPID(),
+            m_robotDrive));
+    new JoystickButton(m_driverController, 1)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.TrackTargetY(),
+            m_robotDrive));
 }
 
   /**

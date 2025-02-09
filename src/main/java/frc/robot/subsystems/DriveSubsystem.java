@@ -17,19 +17,23 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.SPI;
+import frc.robot.AutonomousCommands;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import java.time.chrono.ThaiBuddhistChronology;
 import java.util.Vector;
 
-import com.ctre.phoenix6.hardware.Pigeon2;;
+import com.ctre.phoenix6.hardware.Pigeon2;
 
 public class DriveSubsystem extends SubsystemBase {
   // Configure Pigeon 2.0 in Tuner X for ID, default roborio canbus "rio"
   private final Pigeon2 pigeon2 = new Pigeon2(0, "rio");  
+  
+  public final AutonomousCommands autonomousCommands = new AutonomousCommands(this); // Pass m_robotDrive
 
   private boolean fieldRelative = true;
 
@@ -86,7 +90,7 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    System.out.println(pigeon2.getYaw().getValueAsDouble());  // edit for pigeon
+    System.out.println(getHeading());  // edit for pigeon
     LimelightHelpers.SetRobotOrientation("limelight", 
     pigeon2.getYaw().getValueAsDouble(), pigeon2.getAngularVelocityYWorld().getValueAsDouble(), 
     pigeon2.getPitch().getValueAsDouble(), pigeon2.getAngularVelocityZWorld().getValueAsDouble(), 
@@ -220,6 +224,10 @@ public class DriveSubsystem extends SubsystemBase {
     fieldRelative = !fieldRelative;
   }
 
+  public void TrackTargetY(){
+    if(!LimelightHelpers.getTV("limelight")){ return; }
+    autonomousCommands.RotateToAngle(LimelightHelpers.getTX("limelight"));
+  }
   /**
    * Sets the swerve ModuleStates.
    *
