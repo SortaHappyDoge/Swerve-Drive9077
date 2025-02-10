@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.AutonomousCommands;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -224,9 +225,10 @@ public class DriveSubsystem extends SubsystemBase {
     fieldRelative = !fieldRelative;
   }
 
-  public void TrackTargetY(){
-    if(!LimelightHelpers.getTV("limelight")){ return; }
-    autonomousCommands.RotateToAngle(LimelightHelpers.getTX("limelight"));
+  public void TrackTargetY(XboxController controller){
+    if(!LimelightHelpers.getTV("limelight")){ autonomousCommands.RotateToAngle(0, controller, 0.009, 0, 0.0035); }
+    else{ autonomousCommands.RotateToAngle(LimelightHelpers.getTX("limelight"), controller, 0.009, 0, 0.0035);
+  }
   }
   /**
    * Sets the swerve ModuleStates.
