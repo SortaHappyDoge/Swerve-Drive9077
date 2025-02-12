@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.AutonomousCommands;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -91,11 +92,11 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    System.out.println(getHeading());  // edit for pigeon
+    System.out.println(m_odometry.getPoseMeters());  // edit for pigeon
     LimelightHelpers.SetRobotOrientation("limelight", 
     pigeon2.getYaw().getValueAsDouble(), pigeon2.getAngularVelocityYWorld().getValueAsDouble(), 
-    pigeon2.getPitch().getValueAsDouble(), pigeon2.getAngularVelocityZWorld().getValueAsDouble(), 
-    pigeon2.getRoll().getValueAsDouble(), pigeon2.getAngularVelocityXWorld().getValueAsDouble());
+    0, 0, 
+    0, 0);
     m_odometry.update(
         Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()), // edit for pigeon
         new SwerveModulePosition[] {
@@ -226,9 +227,12 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void TrackTargetY(XboxController controller){
-    if(!LimelightHelpers.getTV("limelight")){ autonomousCommands.RotateToAngle(0, controller, 0.009, 0, 0.0035); }
-    else{ autonomousCommands.RotateToAngle(LimelightHelpers.getTX("limelight"), controller, 0.009, 0, 0.0035);
+    if(!LimelightHelpers.getTV("limelight")){ autonomousCommands.RotateToAngle(0, controller, AutoConstants.kRotationP, AutoConstants.kRotationI, AutoConstants.kRotationD); }
+    else{ autonomousCommands.RotateToAngle(LimelightHelpers.getTX("limelight"), controller, 0.009, 0, 0.0035);}
   }
+
+  public void Rotate90(XboxController controller){
+    autonomousCommands.RotateToAngle(90-getHeading(), controller, 0.009, 0, 0.0035);
   }
   /**
    * Sets the swerve ModuleStates.

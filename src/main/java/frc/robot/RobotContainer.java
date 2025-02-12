@@ -92,6 +92,14 @@ public class RobotContainer {
         .whileTrue(new RunCommand(
             () -> m_robotDrive.TrackTargetY(m_driverController),
             m_robotDrive));
+    new JoystickButton(m_driverController, 2)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.Rotate90(m_driverController),
+            m_robotDrive));
+    new JoystickButton(m_driverController, 11)
+        .onTrue(new InstantCommand(
+            () -> m_robotDrive.resetOdometry(new Pose2d()),
+             m_robotDrive));
 }
 
   /**
