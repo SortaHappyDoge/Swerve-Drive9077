@@ -92,7 +92,7 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    System.out.println(m_odometry.getPoseMeters());  // edit for pigeon
+    System.out.println(m_frontLeft.m_drivingEncoder.getPosition());  // edit for pigeon
     LimelightHelpers.SetRobotOrientation("limelight", 
     pigeon2.getYaw().getValueAsDouble(), pigeon2.getAngularVelocityYWorld().getValueAsDouble(), 
     0, 0, 
@@ -234,6 +234,10 @@ public class DriveSubsystem extends SubsystemBase {
   public void Rotate90(XboxController controller){
     autonomousCommands.RotateToAngle(90-getHeading(), controller, 0.009, 0, 0.0035);
   }
+
+  /*public Rotation2d FuseOdometryRotation(){
+
+  }*/
   /**
    * Sets the swerve ModuleStates.
    *

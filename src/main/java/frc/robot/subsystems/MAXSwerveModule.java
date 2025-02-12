@@ -28,8 +28,8 @@ public class MAXSwerveModule {
   private final SparkMax m_turningSparkMax;
   private final SparkMaxConfig k_turningSparkMaxConfig;
 
-  private final RelativeEncoder m_drivingEncoder;
-  private final AbsoluteEncoder m_turningEncoder;
+  public final RelativeEncoder m_drivingEncoder;
+  public final AbsoluteEncoder m_turningEncoder;
 
   private final SparkClosedLoopController m_drivingPIDController;
   private final SparkClosedLoopController m_turningPIDController;
