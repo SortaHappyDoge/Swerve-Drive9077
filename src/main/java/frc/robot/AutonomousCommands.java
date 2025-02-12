@@ -19,7 +19,6 @@ public class AutonomousCommands {
     public final double kI = 0;
     public final double kD = 0.0035;*/
     public double integralLimit = 2;
-    public double integralResetPoint = 0.1;
     public double lastTimestamp = Timer.getFPGATimestamp();
     public double lastError = 0;
     public double errorRate = 0;
@@ -35,9 +34,8 @@ public class AutonomousCommands {
     public void RotateToAngle(double targetAngle, XboxController controller, double kP, double kI, double kD){
         double dt = Timer.getFPGATimestamp() - lastTimestamp;
         errorDegrees = targetAngle/*targetAngle - ((m_robotDrive.getHeading()+180) % 360 + 360) % 360 -180*/;
-        if(Math.abs(errorDegrees) < integralLimit){ errorSum += dt*errorDegrees; }
+        if(Math.abs(errorDegrees) < integralLimit || AutoConstants.limitI){ errorSum += dt*errorDegrees; }
         else{ errorSum = 0; }
-        if(Math.abs(errorDegrees) < integralResetPoint) { errorSum = 0; }
         errorRate = (errorDegrees - lastError) / dt;
         double output = kP * errorDegrees + kI * errorSum + kD * errorRate;
         if(targetAngle != 0){ 
