@@ -1,0 +1,72 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 1.7036749873868937,
+        "y": 6.639267186817588
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.1064203605692051,
+        "y": 7.468841722718218
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.3747499999981139,
+        "y": 7.096249999999121
+      },
+      "prevControl": {
+        "x": 1.532830848463479,
+        "y": 6.858083300811136
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Journey Started",
+      "waypointRelativePos": 0.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Ready to Pounce"
+        }
+      }
+    },
+    {
+      "name": "Destination Reached",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -54.0
+  },
+  "reversed": false,
+  "folder": "Blue Alliance",
+  "idealStartingState": {
+    "velocity": 3.0,
+    "rotation": -54.0
+  },
+  "useDefaultConstraints": true
+}

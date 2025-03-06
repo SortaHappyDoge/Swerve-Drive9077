@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.text.DecimalFormat;
 
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -99,6 +101,10 @@ public final class Constants {
     public static final double kTurningEncoderPositionPIDMinInput = 0; // radians
     public static final double kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor; // radians
 
+    public static final double kElevatorMotorReduction = 2; // This reduction value is after the cartridges and before the movable pulley (only moveable pulley countsss)
+    public static final double kElevatorSprocketPitchDiameter = 1.76*2.54/100; // inches to m
+    public static final double kElevatorSprocketCircumference = kElevatorSprocketPitchDiameter * Math.PI;
+
     public static final double kDrivingP = 0.04;
     public static final double kDrivingI = 0;
     public static final double kDrivingD = 0;
@@ -118,6 +124,66 @@ public final class Constants {
 
     public static final int kDrivingMotorCurrentLimit = 50; // amps
     public static final int kTurningMotorCurrentLimit = 20; // amps
+
+    public static final double kElevatorMotorSpeedMultiplier = 0.44; // between 0 and 1 0.44
+    public static final double kArmMotorSpeedMultiplier = 0.4; // between 0 and 1 0.44
+
+    public static final int coralQTREmitter = 0;
+    public static final int[] coralQTRPins = {1,2,3,4};
+    public static final double[] coralQTRErrorMultipliers = {1, 0.5, 0.2, 0, -0.2};
+
+    public static final double kArmMotorReduction = 1/62.5;
+    public static final double kRollerMotorReduction = 1/2.5;
+
+    public static final int kElevatorSparkMax0CanID = 10;
+    public static final int kElevatorSparkMax1CanID = 11;
+    public static final int kArmSparkMaxCanID = 12;
+    public static final int kRollerSparkMaxCanID = 13;
+
+    public static final double kElevatorEncoderPositionFactor = (2 * Math.PI);
+    public static final double kElevatorEncoderVelocityFactor = kElevatorEncoderPositionFactor / 60;
+    public static final double kElevatorHeightLimit = 1.34;
+
+    public static final double kEncoderResetThreshold = 150;  // Some large value that the elevator shaft cant rotate in less then the periodic period
+
+    public static final double kArmEncoderPositionFactor = (2 * Math.PI);
+    public static final double kArmEncoderVelocityFactor = kArmEncoderPositionFactor / 60.0;
+    public static final double kArmSafeStandoffRotation = 5;
+    public static final double[] kArmMinBlockedMaxRotations = {0, 20+kArmSafeStandoffRotation, 180}; // The first and last values indicate min/max arm rotation values respectively
+
+    // All of these need recalculations
+    public static final double kArmBlockoffHeightBaseStage = 0.115;
+    public static final double kArmBlockerHeightBaseStage = 0.05;
+    public static final double kArmBlockoffHeightFistStage = 0.230;
+    public static final double kArmBlockerHeightFirstStage = 0.05;
+
+    public static final double kArmBlockoffTolerance = 0.05;
+
+    public static final double[] kArmBlockoffRegions = {
+      0,
+      kArmBlockoffHeightBaseStage-kArmBlockoffTolerance, 
+      kArmBlockoffHeightBaseStage+kArmBlockerHeightBaseStage+kArmBlockoffTolerance,
+      0 -kArmBlockoffTolerance, // for base stage bottom height
+      0 +kArmBlockoffTolerance, //for base stage top height
+      kElevatorHeightLimit
+    };
+    //
+
+    public static final double kRollerEncoderPositionFactor = (2 * Math.PI) * kRollerMotorReduction;
+    public static final double kRollerEncoderVelocityFactor = kRollerEncoderPositionFactor / 60.0;
+    public static final double kRollerWheelFreeSpeedRPS = (NeoMotorConstants.kFreeSpeedRpm * kRollerMotorReduction) / 60;
+    public static final double kMaxRollerSpeedRPM = NeoMotorConstants.kFreeSpeedRpm * -0.2;
+
+    public static final double[] kElevatorPIDUp = {5, 0, 0.5}; // PID settings for the elevator
+    public static final double[] kElevatorPIDDown = {0.5, 0, 0.05}; // PID settings for the elevator
+    public static final double kElevatorIZone = 0;
+    public static final double kElevatorPIDTolerance = 0.005; // PID tolerance in cm error
+    public static final double kElevatorAutonomousTolerance = 0.01; // Tolerance for when the coral is ready to drop
+    public static final double[] kArmPID = {1, 0, 0.02}; // PID settings for the arm rotation
+    public static final double kArmPIDTolerance = 0.005; // PID tolerance in cm error
+    public static final double kArmAutonomousTolerance = 3; // Tolerance for when the coral is ready to drop
+    public static final double[] kRollerPID = {0.0001, 0, 0, 1 / kRollerWheelFreeSpeedRPS};  // PIDF settings for the arm rollers
+    public static final double[] qtrPID = {0, 0, 0};  // PID settings for the QTR sensor reads
   }
 
   public static final class OIConstants {
@@ -139,8 +205,7 @@ public final class Constants {
     public static final double kRotationI = 0;
     public static final double kRotationD = 0.0018;
     public static final double kRotationIStart = 2;
-    public static final boolean limitI = false;
-    
+    public static final boolean limitI = false;    
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(

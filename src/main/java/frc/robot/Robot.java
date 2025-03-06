@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -34,6 +35,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
     // autonomous chooser on the dashboard.
+    enableLiveWindowInTest(true);
     m_robotContainer = new RobotContainer();
     for (int port = 5800; port <= 5809; port++) {
       PortForwarder.add(port, "limelight.local", port);
@@ -122,5 +124,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
+    /*m_robotContainer.m_robotDrive.m_elevator.setDesiredHeight(SmartDashboard.getNumber("Desired Elevator Height", 0.0));
+    m_robotContainer.m_robotDrive.m_armSubsystem.setDesiredArmRotation(SmartDashboard.getNumber("Desired Arm Rotation", 5));*/
   }
 }

@@ -86,11 +86,11 @@ public class RobotContainer {
             m_robotDrive));
     new JoystickButton(m_driverController, 1)
         .onTrue(new InstantCommand(
-            () -> autonomousCommands.ResetPID(),
+            () -> autonomousCommands.ResetRotationPID(),
             m_robotDrive));
     new JoystickButton(m_driverController, 1)
         .whileTrue(new RunCommand(
-            () -> m_robotDrive.TrackTargetY(m_driverController),
+            () -> m_robotDrive.Target(m_driverController),
             m_robotDrive));
     new JoystickButton(m_driverController, 2)
         .whileTrue(new RunCommand(
@@ -100,6 +100,34 @@ public class RobotContainer {
         .onTrue(new InstantCommand(
             () -> m_robotDrive.resetOdometry(new Pose2d()),
              m_robotDrive));
+    new JoystickButton(m_driverController, 4)
+        .onTrue(new InstantCommand(
+            () -> m_robotDrive.m_elevator.setDesiredHeight(0),
+             m_robotDrive));
+    new JoystickButton(m_driverController, 5)
+        .onTrue(new InstantCommand(
+            () -> m_robotDrive.m_elevator.setDesiredHeight(.6),
+             m_robotDrive));
+    new JoystickButton(m_driverController, 6)
+        .onTrue(new InstantCommand(
+            () -> m_robotDrive.m_elevator.setDesiredHeight(1.34),
+             m_robotDrive));
+    new JoystickButton(m_driverController, 7)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.m_armSubsystem.loadCoral(),
+            m_robotDrive));  
+    new JoystickButton(m_driverController, 7)
+        .onTrue(new RunCommand(
+            () -> m_robotDrive.m_armSubsystem.loadCoralManual(),
+            m_robotDrive));  
+    new JoystickButton(m_driverController, 10)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.m_armSubsystem.armTest(1),
+            m_robotDrive)); 
+    new JoystickButton(m_driverController, 9)
+        .whileTrue(new RunCommand(
+            () -> m_robotDrive.m_armSubsystem.armTest(-1),
+            m_robotDrive)); 
 }
 
   /**

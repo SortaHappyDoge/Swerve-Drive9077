@@ -57,7 +57,7 @@ public class MAXSwerveModule {
     k_drivingSparkMaxConfig.closedLoop
       .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
       .pid(ModuleConstants.kDrivingP, ModuleConstants.kDrivingI, ModuleConstants.kDrivingD)
-      .velocityFF(1/ModuleConstants.kDriveWheelFreeSpeedRps)
+      .velocityFF(ModuleConstants.kDrivingFF)
       .outputRange(ModuleConstants.kDrivingMinOutput, ModuleConstants.kDrivingMaxOutput);
     m_drivingSparkMax.configure(k_drivingSparkMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_drivingEncoder = m_drivingSparkMax.getEncoder();
@@ -126,6 +126,26 @@ public class MAXSwerveModule {
     SwerveModuleState correctedDesiredState = new SwerveModuleState();
     correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
     correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(m_chassisAngularOffset));
+
+    // Optimize the reference state to avoid spinning further than 90 degrees.
+    correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
+    
+    // Command driving and turning SPARKS MAX towards their respective setpoints.
+    m_drivingPIDController.setReference(correctedDesiredState.speedMetersPerSecond, SparkMax.ControlType.kVelocity);
+    m_turningPIDController.setReference(correctedDesiredState.angle.getRadians(), SparkMax.ControlType.kPosition);
+
+    m_desiredState = desiredState;
+  }
+  /**
+   * Sets the desired state for the module.
+   *
+   * @param desiredState Desired state with speed and angle relative to the robot.
+   */
+  public void setDesiredStateRobotRelative(SwerveModuleState desiredState) {
+    // Apply chassis angular offset to the desired state.
+    SwerveModuleState correctedDesiredState = new SwerveModuleState();
+    correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
+    correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromDegrees(0));
 
     // Optimize the reference state to avoid spinning further than 90 degrees.
     correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
