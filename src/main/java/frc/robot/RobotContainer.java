@@ -14,19 +14,32 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
+import java.io.Console;
 import java.time.Instant;
 import java.util.List;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.pathfinding.Pathfinder;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -40,14 +53,18 @@ public class RobotContainer {
   public final AutonomousCommands autonomousCommands = new AutonomousCommands(m_robotDrive); // Pass m_robotDrive
   // The driver's controller
   public XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  
+    private final SendableChooser<Command> autoChooser;
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
+  public static Field2d m_field = new Field2d();
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
-
+    
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+    
     // Configure default commands
     m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
@@ -60,6 +77,22 @@ public class RobotContainer {
                 true),
             m_robotDrive));
         
+    SmartDashboard.putData("Field", m_field);
+    PathPlannerLogging.setLogCurrentPoseCallback((pose) -> {
+        // Do whatever you want with the pose here
+        m_field.setRobotPose(pose);
+    });
+    // Logging callback for target robot pose
+    PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
+        // Do whatever you want with the pose here
+        m_field.getObject("target pose").setPose(pose);
+    });
+
+    // Logging callback for the active path, this is sent as a list of poses
+    PathPlannerLogging.setLogActivePathCallback((poses) -> {
+        // Do whatever you want with the poses here
+        m_field.getObject("path").setPoses(poses);
+    });
   }
 
   /**
@@ -118,8 +151,8 @@ public class RobotContainer {
             m_robotDrive));  
     new JoystickButton(m_driverController, 7)
         .onTrue(new RunCommand(
-            () -> m_robotDrive.m_armSubsystem.loadCoralManual(),
-            m_robotDrive));  
+            () -> m_robotDrive.m_armSubsystem.loadCoralManual(0.2),
+            m_robotDrive));
     new JoystickButton(m_driverController, 10)
         .whileTrue(new RunCommand(
             () -> m_robotDrive.m_armSubsystem.armTest(1),
@@ -136,44 +169,14 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // Create config for trajectory
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
-
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(0.5, 0)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(1, 0, new Rotation2d(90)),
-        config);
-
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        m_robotDrive::getPose, // Functional interface to feed supplier
-        DriveConstants.kDriveKinematics,
-
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
-
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
-
-    // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
-  }
-  // -1.0687
+    //PathPlannerPath path = PathPlannerPath.fromPathFile("ID 12 Source.path");
+    try {
+        return AutoBuilder.pathfindToPose(m_robotDrive.m_autonCmds.autonDestinations[0], AutoConstants.kPathfindingConstraints).andThen(AutoBuilder.pathfindToPose(m_robotDrive.m_autonCmds.autonDestinations[2], AutoConstants.kPathfindingConstraints)).andThen(AutoBuilder.pathfindToPose(m_robotDrive.m_autonCmds.autonDestinations[1], AutoConstants.kPathfindingConstraints));
+        //return AutoBuilder.followPath(auto);
+        
+    } catch (Exception e) {
+        System.out.println(e);
+        return null;
+    }
+}
 }

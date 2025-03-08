@@ -4,9 +4,12 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathfindingCommand;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -23,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
+  private AutonomousCommands autonCmds;
   private RobotContainer m_robotContainer;
 
   /**
@@ -36,10 +40,16 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
     enableLiveWindowInTest(true);
+    LiveWindow.setEnabled(true);
+    LiveWindow.enableAllTelemetry();
+
     m_robotContainer = new RobotContainer();
+    autonCmds = m_robotContainer.m_robotDrive.m_autonCmds;
     for (int port = 5800; port <= 5809; port++) {
       PortForwarder.add(port, "limelight.local", port);
     }
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    PathfindingCommand.warmupCommand().schedule();
   }
 
   /**
@@ -61,12 +71,14 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods. This must be called from the
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
+    LiveWindow.updateValues();
     CommandScheduler.getInstance().run();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
+    autonCmds.autonState = 0;
   }
 
   @Override
@@ -79,24 +91,14 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    /*
-     * String autoSelected = SmartDashboard.getString("Auto Selector",
-     * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-     * = new MyAutoCommand(); break; case "Default Auto": default:
-     * autonomousCommand = new ExampleCommand(); break; }
-     */
-
-    // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
+    ////autonCmds.autonState = 1;
+    m_autonomousCommand.schedule();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
+    //autonCmds.autonSequence();
   }
 
   @Override
@@ -105,9 +107,12 @@ public class Robot extends TimedRobot {
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
     // this line or comment it out.
+    autonCmds.autonState = 0;
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    m_autonomousCommand.schedule();
+
   }
 
   /** This function is called periodically during operator control. */
@@ -124,7 +129,5 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
-    /*m_robotContainer.m_robotDrive.m_elevator.setDesiredHeight(SmartDashboard.getNumber("Desired Elevator Height", 0.0));
-    m_robotContainer.m_robotDrive.m_armSubsystem.setDesiredArmRotation(SmartDashboard.getNumber("Desired Arm Rotation", 5));*/
   }
 }

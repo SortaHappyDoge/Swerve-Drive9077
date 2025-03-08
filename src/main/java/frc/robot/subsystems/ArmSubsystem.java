@@ -31,10 +31,11 @@ public class ArmSubsystem extends SubsystemBase{
     AutonomousCommands m_autonCmds;
     ElevatorSubsystem m_elevator;
 
-    QTRModule coralQTR = new QTRModule(ModuleConstants.coralQTRPins, ModuleConstants.coralQTREmitter);
+    //QTRModule coralQTR = new QTRModule(ModuleConstants.coralQTRPins, ModuleConstants.coralQTREmitter);
     boolean coralLoaded = false;
     boolean doLoadCoral = false;
     boolean doUnloadCoral = false;
+    DigitalInput coralChecker = new DigitalInput(6);
 
     // Coral position is 1 for when the qtr sensor DOESN'T see the coral and the coral is closer to the HOPPPER
     // Coral position is 0 for when the qtr sensor DOES see the coral
@@ -52,7 +53,7 @@ public class ArmSubsystem extends SubsystemBase{
     
     public boolean doRotate = false;
     public double[] armMinMaxRotation = {ModuleConstants.kArmMinBlockedMaxRotations[0], ModuleConstants.kArmMinBlockedMaxRotations[2]};
-    public double desiredArmAngle = 50;
+    public double desiredArmAngle = 10;
 
 
     PIDController dashboard_armPID = new PIDController(ModuleConstants.kArmPID[0], ModuleConstants.kArmPID[1], ModuleConstants.kArmPID[2]);
@@ -106,11 +107,11 @@ public class ArmSubsystem extends SubsystemBase{
 
     @Override
     public void periodic(){
-        coralLoaded = coralQTR.getState()[2];
+        coralLoaded = !coralChecker.get();
         doRotate = true;
         if(doLoadCoral) doUnloadCoral = false;
         if(doRotate) rotateArmTo(Rotation2d.fromDegrees(desiredArmAngle));
-        System.out.println(Rotation2d.fromRadians(m_armAbsoluteEncoder.getPosition()).getDegrees());
+        //System.out.println(Rotation2d.fromRadians(m_armAbsoluteEncoder.getPosition()).getDegrees());
     }
 
     /*public void unloadCoralM() {
@@ -131,14 +132,15 @@ public class ArmSubsystem extends SubsystemBase{
         m_armPIDController.setReference(rotation.getRadians(), SparkMax.ControlType.kPosition);
     }
 
-    public void loadCoralManual(){
-        m_rollerPIDcontroller.setReference(ModuleConstants.kMaxRollerSpeedRPM*0.01, SparkMax.ControlType.kVelocity);
+    public void loadCoralManual(double sped){
+        //m_rollerPIDcontroller.setReference(ModuleConstants.kMaxRollerSpeedRPM*0.01, SparkMax.ControlType.kVelocity);
+        m_rollerSparkMax.set(sped);
     }
     /*public void loadCoralSimple(){
         m_rollerPIDcontroller.setReference(, SparkMax.ControlType.kVelocity);
     }*/
     public void loadCoral(){
-        m_rollerPIDcontroller.setReference(ModuleConstants  .kMaxRollerSpeedRPM * m_autonCmds.coralAdjustments(coralQTR.getState()), SparkMax.ControlType.kVelocity);
+        //m_rollerPIDcontroller.setReference(ModuleConstants  .kMaxRollerSpeedRPM * m_autonCmds.coralAdjustments(coralQTR.getState()), SparkMax.ControlType.kVelocity);
     }
     public void unloadCoral(){
         if(coralLoaded){

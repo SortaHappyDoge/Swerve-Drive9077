@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.AutonomousCommands;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
@@ -40,14 +41,19 @@ import java.time.chrono.ThaiBuddhistChronology;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 public class DriveSubsystem extends SubsystemBase {
+  RobotConfig config;
+
   // Configure Pigeon 2.0 in Tuner X for ID, default roborio canbus "rio"
   private final Pigeon2 pigeon2 = new Pigeon2(0, "rio");  
   
@@ -82,7 +88,7 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
-  public Pose2d m_robotPose = new Pose2d(); // Pose of the robot compared to the field 
+  public Pose2d m_robotPose; // Pose of the robot compared to the field 
   private SwerveDrivePoseEstimator m_poseEstimator;
   boolean zeroPoseWithLL = true;
   boolean rejectLLupdate = false;
@@ -109,9 +115,6 @@ public class DriveSubsystem extends SubsystemBase {
       }
     );
 
-
-
-  private final Field2d m_field = new Field2d();
   public Pose2d[] aprilTagPositions = {
     new Pose2d(new Translation2d(16.7072, 0.6553), new Rotation2d()),
     new Pose2d(new Translation2d(16.7072, 7.3965), new Rotation2d()),
@@ -142,6 +145,13 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
+    try{
+      config = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      // Handle exception as needed
+      e.printStackTrace();
+    }
+
     m_autonCmds = new AutonomousCommands(this);
     m_armSubsystem = new ArmSubsystem(m_autonCmds, m_elevator);
     m_elevator = new ElevatorSubsystem(m_armSubsystem);
@@ -153,6 +163,8 @@ public class DriveSubsystem extends SubsystemBase {
       0, 0);
 
       m_robotPose = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight").pose;
+    }else{
+      m_robotPose = new Pose2d(1, 2, new Rotation2d(m_currentRotation));
     }
 
     m_poseEstimator = new SwerveDrivePoseEstimator(
@@ -169,10 +181,8 @@ public class DriveSubsystem extends SubsystemBase {
     int[] validIDs = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22};
     LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
     
-    m_field.setRobotPose(m_robotPose);
-
-
-    //initiateDashboard();
+    configureAutoBuilder();
+        //initiateDashboard();
   }
 
   @Override
@@ -208,8 +218,6 @@ public class DriveSubsystem extends SubsystemBase {
     );
 
     m_robotPose = getPose();
-    m_field.setRobotPose(m_robotPose);
-
     //updateDashboardValues();
   }
 
@@ -444,7 +452,6 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void initiateDashboard(){
-    /*SmartDashboard.putData("Field", m_field);
     SmartDashboard.putData("Swerve",
       builder -> {
         builder.setSmartDashboardType("SwerveDrive");
@@ -471,20 +478,34 @@ public class DriveSubsystem extends SubsystemBase {
           builder.addDoubleProperty(
               "Robot Angle", () -> Rotation2d.fromDegrees(getHeading()).getRadians(), null);
       }
-    );*/
+    );
   }
-
-  /*public void configureAutoBuilder(){
-    AutoBuilder.configure(
-      m_poseEstimator.getEstimatedPosition(),
-      m_poseEstimator.resetPose(m_robotPose), 
-      getChassisSpeeds(),
-      (speeds, feedforwards) -> setChassisSpeeds(speeds), 
-      new PPHolonomicDriveController(
-        null,
-        null), null, null, null);
-  }*/
   public void updateDashboardValues(){
 
   }
+
+  public void configureAutoBuilder(){
+    AutoBuilder.configure(
+      () -> m_poseEstimator.getEstimatedPosition(),
+      (pose) -> m_poseEstimator.resetPose(pose), 
+      () -> getChassisSpeeds(),
+      (speeds, feedforwards) -> setChassisSpeeds(speeds), 
+      new PPHolonomicDriveController(
+        new PIDConstants(1, 0),
+        new PIDConstants(1, 0)), 
+      config, 
+      () -> {
+        // Boolean supplier that controls when the path will be mirrored for the red alliance
+        // This will flip the path being followed to the red side of the field.
+        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+      }, 
+      this);
+  }
+
 }

@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.text.DecimalFormat;
 
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -149,7 +150,7 @@ public final class Constants {
     public static final double kArmEncoderPositionFactor = (2 * Math.PI);
     public static final double kArmEncoderVelocityFactor = kArmEncoderPositionFactor / 60.0;
     public static final double kArmSafeStandoffRotation = 5;
-    public static final double[] kArmMinBlockedMaxRotations = {0, 20+kArmSafeStandoffRotation, 180}; // The first and last values indicate min/max arm rotation values respectively
+    public static final double[] kArmMinBlockedMaxRotations = {0, 20+kArmSafeStandoffRotation, 120}; // The first and last values indicate min/max arm rotation values respectively
 
     // All of these need recalculations
     public static final double kArmBlockoffHeightBaseStage = 0.115;
@@ -206,6 +207,12 @@ public final class Constants {
     public static final double kRotationD = 0.0018;
     public static final double kRotationIStart = 2;
     public static final boolean limitI = false;    
+
+    public static final PathConstraints kPathfindingConstraints = new PathConstraints(
+      kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared,
+       kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+
+    public static final double[] kReefHeights = {0.2, 0.31, 0.71, 1.34}; // L1, L2, L3 and L4 respectively (in meters)
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(

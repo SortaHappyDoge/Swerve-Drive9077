@@ -90,7 +90,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         else doMove = true;
         //desiredElevatorPosition = 1.34;
         moveElevatorTo(desiredElevatorPosition);
-        System.out.println(elevatorPosition);
+        //System.out.println(elevatorPosition);
         //updateDashboardValues();
     }
 
@@ -101,7 +101,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     public void moveElevatorTo(double m){
         //m_armSubsystem.doRotate = false;
         m = MathUtil.clamp(m, 0, ModuleConstants.kElevatorHeightLimit);
-        m_elevatorSparkMax0.setVoltage(m);
+        //m_elevatorSparkMax0.setVoltage(m);
         /*if(!doMove) {
             m_elevatorSparkMax0.stopMotor();
             return;
@@ -233,6 +233,15 @@ public class ElevatorSubsystem extends SubsystemBase {
                     break;
             }
         }*/
+        if(desiredElevatorPosition > 0.1 || elevatorPosition > 0.1){
+            m_armSubsystem.armMinMaxRotation = new double[]{ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[2]};
+        }
+        else{
+            m_armSubsystem.armMinMaxRotation = new double[]{ModuleConstants.kArmMinBlockedMaxRotations[0], ModuleConstants.kArmMinBlockedMaxRotations[2]};
+        }
+        if(Rotation2d.fromRadians(m_armSubsystem.m_armAbsoluteEncoder.getPosition()).getDegrees() < ModuleConstants.kArmMinBlockedMaxRotations[1] -ModuleConstants.kArmSafeStandoffRotation){
+            return;
+        }
         if(elevatorPosition - m < 0){
             m_elevatorSparkMax0.set(
                 MathUtil.clamp(

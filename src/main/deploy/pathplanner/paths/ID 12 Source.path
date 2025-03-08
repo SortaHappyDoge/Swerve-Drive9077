@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 1.4541135800447282,
-        "y": 0.8712703000121564
+        "x": 1.367,
+        "y": 0.758
       },
       "prevControl": {
-        "x": 1.2343557932511047,
-        "y": 0.6056645354677785
+        "x": 1.1472422132063764,
+        "y": 0.49239423545562205
       },
       "nextControl": null,
       "isLocked": false,
@@ -39,7 +39,7 @@
       "command": {
         "type": "named",
         "data": {
-          "name": "Ready to Pounce"
+          "name": "Ready for Input"
         }
       }
     },
@@ -47,7 +47,12 @@
       "name": "Destination Reached",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Load Coral"
+        }
+      }
     }
   ],
   "globalConstraints": {
