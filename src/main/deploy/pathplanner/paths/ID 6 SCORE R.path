@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 13.877275212421594,
-        "y": 2.593928528331172
+        "x": 14.037,
+        "y": 2.334214174261622
       },
       "prevControl": null,
       "nextControl": {
-        "x": 13.888652980575804,
-        "y": 3.0028997635474255
+        "x": 14.071437883983258,
+        "y": 2.6544123908610437
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 13.877275212421594,
-        "y": 2.950087969379533
+        "x": 13.824000000000002,
+        "y": 2.9981011364266084
       },
       "prevControl": {
-        "x": 13.839062915768029,
-        "y": 2.5569644674621164
+        "x": 14.229981474687406,
+        "y": 2.3294559306729807
       },
       "nextControl": null,
       "isLocked": false,
@@ -45,12 +45,12 @@
     },
     {
       "name": "Destination Reached",
-      "waypointRelativePos": 1.0,
+      "waypointRelativePos": 0.9765747006767326,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "UnloadCoral"
+          "name": "Unload Coral"
         }
       }
     }
@@ -58,19 +58,19 @@
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
-    "maxAngularVelocity": 540.0,
+    "maxAngularVelocity": 360.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": 119.99999999999999
   },
   "reversed": false,
   "folder": "Red Alliance",
   "idealStartingState": {
-    "velocity": 3.0,
+    "velocity": 0.0,
     "rotation": 119.99999999999999
   },
   "useDefaultConstraints": true

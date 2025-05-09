@@ -19,8 +19,12 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.AutonomousCommands;
 import frc.robot.Constants.ModuleConstants;
@@ -35,7 +39,7 @@ public class ArmSubsystem extends SubsystemBase{
     boolean coralLoaded = false;
     boolean doLoadCoral = false;
     boolean doUnloadCoral = false;
-    DigitalInput coralChecker = new DigitalInput(6);
+    AnalogInput coralChecker = new AnalogInput(3);
 
     // Coral position is 1 for when the qtr sensor DOESN'T see the coral and the coral is closer to the HOPPPER
     // Coral position is 0 for when the qtr sensor DOES see the coral
@@ -45,7 +49,7 @@ public class ArmSubsystem extends SubsystemBase{
     SparkMax m_armSparkMax;
     SparkMaxConfig kArmSparkMaxConfig;
     SparkAbsoluteEncoder m_armAbsoluteEncoder;
-    SparkClosedLoopController m_armPIDController;
+    PIDController m_armPIDController;
 
     SparkMax m_rollerSparkMax;
     SparkMaxConfig kRollerSparkMaxConfig;
@@ -53,12 +57,14 @@ public class ArmSubsystem extends SubsystemBase{
     
     public boolean doRotate = false;
     public double[] armMinMaxRotation = {ModuleConstants.kArmMinBlockedMaxRotations[0], ModuleConstants.kArmMinBlockedMaxRotations[2]};
-    public double desiredArmAngle = 10;
-
+    public double desiredArmAngle = 0;
+    public double armAngle;
 
     PIDController dashboard_armPID = new PIDController(ModuleConstants.kArmPID[0], ModuleConstants.kArmPID[1], ModuleConstants.kArmPID[2]);
     PIDController dashboard_rollerPID = new PIDController(ModuleConstants.kRollerPID[0], ModuleConstants.kRollerPID[1], ModuleConstants.kRollerPID[2]);
     
+    double coralHoldTimer = 0;
+
     public ArmSubsystem(AutonomousCommands autonomousCommands, ElevatorSubsystem elevatorSubsystem){
         this.m_autonCmds = autonomousCommands; this.m_elevator = elevatorSubsystem;
 
@@ -71,19 +77,16 @@ public class ArmSubsystem extends SubsystemBase{
         kArmSparkMaxConfig.absoluteEncoder
             .positionConversionFactor(ModuleConstants.kArmEncoderPositionFactor)
             .velocityConversionFactor(ModuleConstants.kArmEncoderVelocityFactor);
-        kArmSparkMaxConfig.closedLoop
-            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-            .pid(ModuleConstants.kArmPID[0], ModuleConstants.kArmPID[1], ModuleConstants.kArmPID[2])
-            .outputRange(-.44, .44);
-        kArmSparkMaxConfig.softLimit
+        /*kArmSparkMaxConfig.softLimit
         .reverseSoftLimitEnabled(true)
         .reverseSoftLimit(ModuleConstants.kArmMinBlockedMaxRotations[0])
         .forwardSoftLimitEnabled(true)
-        .forwardSoftLimit(ModuleConstants.kArmMinBlockedMaxRotations[2]);
+        .forwardSoftLimit(ModuleConstants.kArmMinBlockedMaxRotations[2]);*/
+        kArmSparkMaxConfig.openLoopRampRate(ModuleConstants.kArmMotorSpeedRampRate);
 
         m_armSparkMax.configure(kArmSparkMaxConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
         m_armAbsoluteEncoder = m_armSparkMax.getAbsoluteEncoder();
-        m_armPIDController = m_armSparkMax.getClosedLoopController();
+        m_armPIDController = new PIDController(ModuleConstants.kArmPID[0], ModuleConstants.kArmPID[1], ModuleConstants.kArmPID[2]);
 
         m_rollerSparkMax = new SparkMax(ModuleConstants.kRollerSparkMaxCanID, MotorType.kBrushless);
         kRollerSparkMaxConfig = new SparkMaxConfig();
@@ -102,45 +105,58 @@ public class ArmSubsystem extends SubsystemBase{
         m_rollerSparkMax.configure(kRollerSparkMaxConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
         m_rollerPIDcontroller = m_rollerSparkMax.getClosedLoopController();
 
+
         initiateDashboard();
     }
 
     @Override
     public void periodic(){
-        coralLoaded = !coralChecker.get();
+        if(coralChecker.getVoltage() > 4){
+            coralLoaded = false;
+            coralHoldTimer = Timer.getFPGATimestamp();
+        } 
+        else if(Timer.getFPGATimestamp() - coralHoldTimer > 0.05) {
+            coralLoaded = true;
+        }
         doRotate = true;
         if(doLoadCoral) doUnloadCoral = false;
-        if(doRotate) rotateArmTo(Rotation2d.fromDegrees(desiredArmAngle));
-        //System.out.println(Rotation2d.fromRadians(m_armAbsoluteEncoder.getPosition()).getDegrees());
-    }
 
-    /*public void unloadCoralM() {
-        m_rollerPIDcontroller.setReference(ModuleConstants.kMaxRollerSpeedRPM * ModuleConstants.coralQTRErrorMultipliers[0] * 0.2, SparkMax.ControlType.kVelocity);
-    }*/
-
-    /*public void terminateLoadM() {
-        m_rollerPIDcontroller.setReference(0, SparkMax.ControlType.kVelocity);
-    }*/
-
-    public void armTest(double count) {
-        rotateArmTo(Rotation2d.fromDegrees(desiredArmAngle));
-        desiredArmAngle += count;
+        armAngle = getArmAngle();
+        if(desiredArmAngle >= ModuleConstants.kArmMinimumPoweredRotation || Rotation2d.fromRadians(m_armAbsoluteEncoder.getPosition()).getDegrees() >= ModuleConstants.kArmMinimumPoweredRotation)
+        /*if(doRotate) */rotateArmTo(Rotation2d.fromDegrees(desiredArmAngle));
+        
+        updateDashboardValues();
     }
 
     public void rotateArmTo(Rotation2d rotation){
         rotation = Rotation2d.fromDegrees(MathUtil.clamp(rotation.getDegrees(), armMinMaxRotation[0], armMinMaxRotation[1]));
-        m_armPIDController.setReference(rotation.getRadians(), SparkMax.ControlType.kPosition);
+        if(rotation.getDegrees() < ModuleConstants.kArmMinimumPoweredRotation && getArmAngle() < ModuleConstants.kArmMinimumPoweredRotation){
+            m_armSparkMax.set(MathUtil.clamp(m_armPIDController.calculate(0, 0), -ModuleConstants.kArmMotorSpeedMultiplier, ModuleConstants.kArmMotorSpeedMultiplier));
+        }
+        else
+        m_armSparkMax.set(MathUtil.clamp(m_armPIDController.calculate(armAngle-rotation.getDegrees(), 0), -ModuleConstants.kArmMotorSpeedMultiplier, ModuleConstants.kArmMotorSpeedMultiplier));
+    }
+
+    public double getArmAngle(){
+        double rotation = Rotation2d.fromRadians(m_armAbsoluteEncoder.getPosition()).getDegrees();
+        if(rotation > armMinMaxRotation[1]+20) rotation = 0;
+
+        return rotation;
     }
 
     public void loadCoralManual(double sped){
         //m_rollerPIDcontroller.setReference(ModuleConstants.kMaxRollerSpeedRPM*0.01, SparkMax.ControlType.kVelocity);
         m_rollerSparkMax.set(sped);
     }
-    /*public void loadCoralSimple(){
-        m_rollerPIDcontroller.setReference(, SparkMax.ControlType.kVelocity);
-    }*/
-    public void loadCoral(){
-        //m_rollerPIDcontroller.setReference(ModuleConstants  .kMaxRollerSpeedRPM * m_autonCmds.coralAdjustments(coralQTR.getState()), SparkMax.ControlType.kVelocity);
+    public FunctionalCommand loadCoral(double sped){
+        return new FunctionalCommand(() -> {loadCoralManual(sped);}, 
+        () -> {
+            if(coralChecker.getVoltage() > 4) loadCoralManual(sped);
+            else loadCoralManual(0);
+        }, 
+        interrupted -> {if(coralLoaded) {loadCoralManual(0);}}, 
+        () -> {return coralLoaded;}, 
+        this);
     }
     public void unloadCoral(){
         if(coralLoaded){
@@ -151,7 +167,7 @@ public class ArmSubsystem extends SubsystemBase{
 
     public boolean armStandoffCheck(){
         if(new Rotation2d(m_armAbsoluteEncoder.getPosition()).getDegrees() > ModuleConstants.kArmMinBlockedMaxRotations[1] &&
-           new Rotation2d(m_armAbsoluteEncoder.getPosition()).getDegrees() < 360)
+           new Rotation2d(m_armAbsoluteEncoder.getPosition()).getDegrees() < ModuleConstants.kArmMinBlockedMaxRotations[2])
            return true;
         else return false;
     }
@@ -162,25 +178,13 @@ public class ArmSubsystem extends SubsystemBase{
     }
 
     public void initiateDashboard(){
-        /*
-        addChild("QTR: 0", coralQTR.sensorArray[0]);
-        addChild("QTR: 1", coralQTR.sensorArray[1]);
-        addChild("QTR: 2", coralQTR.sensorArray[2]);
-        addChild("QTR: 3", coralQTR.sensorArray[3]);
-
-        SmartDashboard.putData("Arm PID", dashboard_armPID);
-        SmartDashboard.putData("Roller PID", dashboard_rollerPID);
+        SmartDashboard.putNumber("Arm Rotation", armAngle);
         SmartDashboard.putNumber("Desired Arm Rotation", desiredArmAngle);
-        */
+        SmartDashboard.putBoolean("is Coral Loaded", coralLoaded);
     }
     public void updateDashboardValues(){
-        /*
-        kArmSparkMaxConfig.closedLoop
-        .pid(dashboard_armPID.getP(), dashboard_armPID.getI(), dashboard_armPID.getD());
-        m_armSparkMax.configure(kArmSparkMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        kRollerSparkMaxConfig.closedLoop
-        .pid(dashboard_rollerPID.getP(), dashboard_rollerPID.getI(), dashboard_rollerPID.getD());
-        m_rollerSparkMax.configure(kRollerSparkMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters); 
-        */
+        SmartDashboard.putNumber("Arm Rotation", armAngle);
+        SmartDashboard.putNumber("Desired Arm Rotation", desiredArmAngle);
+        SmartDashboard.putBoolean("is Coral Loaded", coralLoaded);
     }
 }

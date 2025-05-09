@@ -11,6 +11,8 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -57,6 +59,8 @@ public final class Constants {
     public static final double kBackLeftChassisAngularOffset = Math.PI;
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
+    public static final int kPigeon2CanId = 14;
+
     // SPARK MAX CAN IDs
     public static final int kFrontLeftDrivingCanId = 8;
     public static final int kRearLeftDrivingCanId = 6;
@@ -84,7 +88,7 @@ public final class Constants {
 
     // Calculations required for driving motor conversion factors and feed forward
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
-    public static final double kWheelDiameterMeters = 0.0762;
+    public static final double kWheelDiameterMeters = 0.076;
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
     // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on the bevel pinion
     public static final double kDrivingMotorReduction = (45.0 * 22) / (kDrivingMotorPinionTeeth * 15);
@@ -102,7 +106,7 @@ public final class Constants {
     public static final double kTurningEncoderPositionPIDMinInput = 0; // radians
     public static final double kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor; // radians
 
-    public static final double kElevatorMotorReduction = 2; // This reduction value is after the cartridges and before the movable pulley (only moveable pulley countsss)
+    public static final double kElevatorMotorReduction = 6; // This reduction value is after the cartridges and before the movable pulley (only moveable pulley countsss)
     public static final double kElevatorSprocketPitchDiameter = 1.76*2.54/100; // inches to m
     public static final double kElevatorSprocketCircumference = kElevatorSprocketPitchDiameter * Math.PI;
 
@@ -126,8 +130,10 @@ public final class Constants {
     public static final int kDrivingMotorCurrentLimit = 50; // amps
     public static final int kTurningMotorCurrentLimit = 20; // amps
 
-    public static final double kElevatorMotorSpeedMultiplier = 0.44; // between 0 and 1 0.44
+    public static final double kElevatorMotorSpeedMultiplier = 0.8; // between 0 and 1
+    public static final double kElevatorMotorSpeedRampRate = 0.3; // the time (in seconds) for the motor to ramp up from 0% speed to 100%
     public static final double kArmMotorSpeedMultiplier = 0.4; // between 0 and 1 0.44
+    public static final double kArmMotorSpeedRampRate = 0.1; // the time (in seconds) for the motor to ramp up from 0% speed to 100%
 
     public static final int coralQTREmitter = 0;
     public static final int[] coralQTRPins = {1,2,3,4};
@@ -143,14 +149,17 @@ public final class Constants {
 
     public static final double kElevatorEncoderPositionFactor = (2 * Math.PI);
     public static final double kElevatorEncoderVelocityFactor = kElevatorEncoderPositionFactor / 60;
-    public static final double kElevatorHeightLimit = 1.34;
+    public static final double kElevatorHeightLimit = 1.4;
+    public static final double kElevatorMinimumPoweredHeight = 0.02;  // In meters
+    public static final double kArmMinimumPoweredRotation = 5;  // In degrees
+
 
     public static final double kEncoderResetThreshold = 150;  // Some large value that the elevator shaft cant rotate in less then the periodic period
 
     public static final double kArmEncoderPositionFactor = (2 * Math.PI);
     public static final double kArmEncoderVelocityFactor = kArmEncoderPositionFactor / 60.0;
-    public static final double kArmSafeStandoffRotation = 5;
-    public static final double[] kArmMinBlockedMaxRotations = {0, 20+kArmSafeStandoffRotation, 120}; // The first and last values indicate min/max arm rotation values respectively
+    public static final double kArmSafeStandoffRotation = 10;
+    public static final double[] kArmMinBlockedMaxRotations = {0, 15+kArmSafeStandoffRotation, 300}; // The first and last values indicate min/max arm rotation values respectively
 
     // All of these need recalculations
     public static final double kArmBlockoffHeightBaseStage = 0.115;
@@ -175,13 +184,13 @@ public final class Constants {
     public static final double kRollerWheelFreeSpeedRPS = (NeoMotorConstants.kFreeSpeedRpm * kRollerMotorReduction) / 60;
     public static final double kMaxRollerSpeedRPM = NeoMotorConstants.kFreeSpeedRpm * -0.2;
 
-    public static final double[] kElevatorPIDUp = {5, 0, 0.5}; // PID settings for the elevator
-    public static final double[] kElevatorPIDDown = {0.5, 0, 0.05}; // PID settings for the elevator
+    public static final double[] kElevatorPIDUp = {7, 0, 0.7}; // PID settings for the elevator
+    public static final double[] kElevatorPIDDown = {1.25, 0, 0.05}; // PID settings for the elevator
     public static final double kElevatorIZone = 0;
-    public static final double kElevatorPIDTolerance = 0.005; // PID tolerance in cm error
+    public static final double kElevatorPIDTolerance = 0.01; // PID tolerance in cm error
     public static final double kElevatorAutonomousTolerance = 0.01; // Tolerance for when the coral is ready to drop
-    public static final double[] kArmPID = {1, 0, 0.02}; // PID settings for the arm rotation
-    public static final double kArmPIDTolerance = 0.005; // PID tolerance in cm error
+    public static final double[] kArmPID = {0.01, 0, 0.0004}; // PID settings for the arm rotation
+    public static final double kArmPIDTolerance = 0.5; // PID tolerance in cm error
     public static final double kArmAutonomousTolerance = 3; // Tolerance for when the coral is ready to drop
     public static final double[] kRollerPID = {0.0001, 0, 0, 1 / kRollerWheelFreeSpeedRPS};  // PIDF settings for the arm rollers
     public static final double[] qtrPID = {0, 0, 0};  // PID settings for the QTR sensor reads
@@ -193,14 +202,15 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 3;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+    public static final double kMaxSpeedMetersPerSecond = 3.5;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 3.5;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 
-    public static final double kPXController = 1;
-    public static final double kPYController = 1;
-    public static final double kPThetaController = 1;
+    public static final double kPXController = 5;
+    public static final double kDXController = 0;
+    //public static final double kPYController = 1;
+    public static final double kPThetaController = 5;
 
     public static final double kRotationP = 0.014;
     public static final double kRotationI = 0;
@@ -212,7 +222,22 @@ public final class Constants {
       kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared,
        kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-    public static final double[] kReefHeights = {0.2, 0.31, 0.71, 1.34}; // L1, L2, L3 and L4 respectively (in meters)
+    public static final double[] kReefHeights = {0, 0.285, 0.67, 1.33, 0.15}; // L1, L2, L3, L4 and Ready Stance respectively (in meters) (for elevator)
+    public static final double[] kBallHeights = {0.25, 0.63, 1}; // Lower and higher algae respectively (in meters) (for elevator)
+    public static final double kHeightTolerance = 0.03;
+    public static final double[] kReefAngles = {ModuleConstants.kArmMinBlockedMaxRotations[0], ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[1] + 10, 180, 200}; // L1, L2, L3 , L4 and ball respectively (in degrees) (for arm)
+
+
+    // x min 0 max 17.54,y min 0 max 0.805
+    public static final Pose2d[] kStartingPoses = {
+      new Pose2d(7.576,6.5,Rotation2d.fromDegrees(-180)),     // Start 0
+      new Pose2d(7.576,4,Rotation2d.fromDegrees(-180)),     // Start 1
+      new Pose2d(7.576,1.5,Rotation2d.fromDegrees(-180)),     // Start 2
+
+      new Pose2d(9.964,1.5,Rotation2d.fromDegrees(0)),// Start 3
+      new Pose2d(9.964,4,Rotation2d.fromDegrees(0)),// Start 4
+      new Pose2d(9.964,6.5,Rotation2d.fromDegrees(0)) // Start 5
+    };
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(

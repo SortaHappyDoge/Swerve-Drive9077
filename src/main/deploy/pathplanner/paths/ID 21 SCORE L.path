@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.114404523510295,
-        "y": 4.035825072856941
+        "x": 6.021591696575727,
+        "y": 3.85559908345214
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.819954759569916,
-        "y": 3.892701290268535
+        "x": 5.652493693121885,
+        "y": 3.8279289615279577
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.7883025972673385,
-        "y": 3.8665654572272654
+        "x": 5.758769467224625,
+        "y": 3.857221442892579
       },
       "prevControl": {
-        "x": 6.046572090660666,
-        "y": 3.9694085070041356
+        "x": 6.2219780435167635,
+        "y": 3.913971106214726
       },
       "nextControl": null,
       "isLocked": false,
@@ -39,7 +39,7 @@
       "command": {
         "type": "named",
         "data": {
-          "name": "Raise Elevator"
+          "name": "Ready Elevator"
         }
       }
     },
@@ -47,18 +47,13 @@
       "name": "Destination Reached",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "UnloadCoral"
-        }
-      }
+      "command": null
     }
   ],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
-    "maxAngularVelocity": 540.0,
+    "maxAngularVelocity": 360.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
@@ -70,7 +65,7 @@
   "reversed": false,
   "folder": "Blue Alliance",
   "idealStartingState": {
-    "velocity": 3.0,
+    "velocity": 0.0,
     "rotation": 180.0
   },
   "useDefaultConstraints": true

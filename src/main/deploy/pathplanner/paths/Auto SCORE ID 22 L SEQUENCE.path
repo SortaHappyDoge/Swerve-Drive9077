@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 12.094000000000001,
-        "y": 2.3481139681818037
+        "x": 7.583,
+        "y": 2.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 12.46191915649328,
-        "y": 2.3822554580807083
+        "x": 7.344321732804438,
+        "y": 2.0743820191210487
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 12.557,
-        "y": 2.8300924633944327
+        "x": 4.984737540225538,
+        "y": 2.834751737092596
       },
       "prevControl": {
-        "x": 12.182754757375054,
-        "y": 2.2302987166838184
+        "x": 7.023334366303287,
+        "y": 1.6404214029439963
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,25 +34,31 @@
   "eventMarkers": [
     {
       "name": "Journey Started",
-      "waypointRelativePos": 0.0,
+      "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Raise Elevator"
+          "name": "Ready Elevator"
         }
       }
     },
     {
-      "name": "Destination Reached",
-      "waypointRelativePos": 0.98,
+      "name": "Raise Elevator",
+      "waypointRelativePos": 0.75,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Unload Coral"
+          "name": "Raise Elevator 3"
         }
       }
+    },
+    {
+      "name": "Unload Coral",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
     }
   ],
   "globalConstraints": {
@@ -65,13 +71,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 119.99999999999999
   },
   "reversed": false,
-  "folder": "Red Alliance",
+  "folder": null,
   "idealStartingState": {
-    "velocity": 0.0,
-    "rotation": 59.99999999999999
+    "velocity": 0,
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

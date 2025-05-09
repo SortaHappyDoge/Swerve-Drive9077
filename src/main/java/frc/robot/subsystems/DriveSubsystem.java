@@ -19,12 +19,18 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.AutonomousCommands;
 import frc.robot.Constants;
@@ -37,6 +43,8 @@ import frc.robot.LimelightHelpers.LimelightResults;
 import frc.utils.SwerveUtils;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import java.io.Serial;
+import java.lang.reflect.Field;
 import java.time.chrono.ThaiBuddhistChronology;
 import java.util.Arrays;
 import java.util.List;
@@ -53,13 +61,16 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 public class DriveSubsystem extends SubsystemBase {
   RobotConfig config;
-
-  // Configure Pigeon 2.0 in Tuner X for ID, default roborio canbus "rio"
-  private final Pigeon2 pigeon2 = new Pigeon2(0, "rio");  
+  SendableChooser<Pose2d> pose_chooser = new SendableChooser<>();
+  Field2d mt1Field = new Field2d();
+  Field2d mt2Field = new Field2d();
   
-  public AutonomousCommands m_autonCmds; // Pass m_robotDrive
+  // Configure Pigeon 2.0 in Tuner X for ID, default roborio canbus "rio"
+  private final Pigeon2 pigeon2 = new Pigeon2(DriveConstants.kPigeon2CanId, "rio");  
+  
   public ArmSubsystem m_armSubsystem;
   public ElevatorSubsystem m_elevator;
+  public AutonomousCommands m_autonCmds; // Pass m_robotDrive
 
   private boolean fieldRelative = true;
 
@@ -85,7 +96,7 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset);
 
   // Slew rate filter variables for controlling lateral acceleration
-  private double m_currentRotation = 0.0;
+  private double m_currentRotation = 0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
   public Pose2d m_robotPose; // Pose of the robot compared to the field 
@@ -133,10 +144,10 @@ public class DriveSubsystem extends SubsystemBase {
     new Pose2d(new Translation2d(8.2773, 1.9149), new Rotation2d()),
     new Pose2d(new Translation2d(5.9876, -0.0038), new Rotation2d()),
     new Pose2d(new Translation2d(4.0739, 3.3063), new Rotation2d(60)),
-    new Pose2d(new Translation2d(3.6576, 4.0259), new Rotation2d(0)),
+    new Pose2d(new Translation2d(3.6576, 4.0259), new Rotation2d(180)),
     new Pose2d(new Translation2d(4.0739, 4.7455), new Rotation2d(-60)),
     new Pose2d(new Translation2d(4.9049, 4.7455), new Rotation2d(-120)),
-    new Pose2d(new Translation2d(5.3111, 4.0259), new Rotation2d(180)),
+    new Pose2d(new Translation2d(5.3111, 4.0259), new Rotation2d(0)),
     new Pose2d(new Translation2d(4.9049, 3.3063), new Rotation2d(120))
 };
   public int[] reefAprilTags = {6,7,8,9,10,11,17,18,19,20,21,22};
@@ -149,12 +160,26 @@ public class DriveSubsystem extends SubsystemBase {
       config = RobotConfig.fromGUISettings();
     } catch (Exception e) {
       // Handle exception as needed
-      e.printStackTrace();
+      System.out.println(e);
     }
+    pose_chooser.setDefaultOption("Blue Middle", AutoConstants.kStartingPoses[1]);
+    pose_chooser.addOption("Blue Left", AutoConstants.kStartingPoses[0]);
+    pose_chooser.addOption("Blue Middle", AutoConstants.kStartingPoses[1]);
+    pose_chooser.addOption("Blue Right", AutoConstants.kStartingPoses[2]);
+    pose_chooser.addOption("Red Left", AutoConstants.kStartingPoses[3]);
+    pose_chooser.addOption("Red Middle", AutoConstants.kStartingPoses[4]);
+    pose_chooser.addOption("Red Right", AutoConstants.kStartingPoses[5]);
+    SmartDashboard.putData(pose_chooser);
 
-    m_autonCmds = new AutonomousCommands(this);
     m_armSubsystem = new ArmSubsystem(m_autonCmds, m_elevator);
     m_elevator = new ElevatorSubsystem(m_armSubsystem);
+    m_autonCmds = new AutonomousCommands(this);
+
+    pigeon2.setYaw(0);
+    m_currentRotation = getHeading();
+
+    //LimelightHelpers.setCameraPose_RobotSpace("limelight", 0.225, 0.24, 0.23, 0, 0, 23.9);
+
 
     if(LimelightHelpers.getTV("limelight") && zeroPoseWithLL){
       LimelightHelpers.SetRobotOrientation("limelight", 
@@ -164,7 +189,7 @@ public class DriveSubsystem extends SubsystemBase {
 
       m_robotPose = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight").pose;
     }else{
-      m_robotPose = new Pose2d(1, 2, new Rotation2d(m_currentRotation));
+      m_robotPose = new Pose2d(new Translation2d(), Rotation2d.fromDegrees(m_currentRotation));
     }
 
     m_poseEstimator = new SwerveDrivePoseEstimator(
@@ -177,21 +202,24 @@ public class DriveSubsystem extends SubsystemBase {
         m_rearRight.getPosition()
       },
       m_robotPose);
+    if(DriverStation.getAlliance().get() == Alliance.Blue){      
+      int[] validIDs = {17, 18, 19, 20, 21, 22};
+      LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
+    }
+    else{
+      int[] validIDs = {6, 7, 8, 9, 10, 11};
+      LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
+    }
+    SmartDashboard.putData("Megatag", mt1Field);
+    SmartDashboard.putData("Megatag2", mt2Field);
 
-    int[] validIDs = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22};
-    LimelightHelpers.SetFiducialIDFiltersOverride("limelight", validIDs);
     
     configureAutoBuilder();
-        //initiateDashboard();
+    initiateDashboard();
   }
 
   @Override
   public void periodic() {
-    LimelightHelpers.SetRobotOrientation("limelight", 
-    pigeon2.getYaw().getValueAsDouble(), /*pigeon2.getAngularVelocityYWorld().getValueAsDouble()*/0, 
-    0, 0, 
-    0, 0);
-   
     // Update the odometry in the periodic block
     m_moduleStates = new SwerveModuleState[]{
       m_frontLeft.getState(),
@@ -216,9 +244,15 @@ public class DriveSubsystem extends SubsystemBase {
         m_rearRight.getPosition()
       }
     );
+    addVisionMeasurement();
 
     m_robotPose = getPose();
+    //RobotContainer.m_field.getObject("Actual Pose").setPose(m_robotPose);
+    RobotContainer.m_field.setRobotPose(m_robotPose);
+    
+
     //updateDashboardValues();
+    //SmartDashboard.updateValues();
   }
 
   /**
@@ -228,6 +262,9 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public Pose2d getPose() {
     return m_poseEstimator.getEstimatedPosition();
+  }
+  public void resetPose(Pose2d newPose){
+    m_poseEstimator.resetPose(newPose);
   }
 
   /**
@@ -336,8 +373,8 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
   }
 
-  public void toggleFieldRelative(){
-    fieldRelative = !fieldRelative;
+  public void setFieldRelative(boolean relative){
+    fieldRelative = relative;
   }
 
   public void Target(XboxController controller){
@@ -345,16 +382,19 @@ public class DriveSubsystem extends SubsystemBase {
     double lowest = 100000;
     int lowestID = -1;
     Pose2d estimate = m_poseEstimator.getEstimatedPosition();
-
+    
     for (Pose2d pos : aprilTagPositions) {
       double dist = Math.sqrt(Math.pow((pos.getX() - estimate.getX()), 2) + Math.pow((pos.getY() - estimate.getY()), 2));
-      if(dist < lowest && Arrays.asList(reefAprilTags).contains(i)){
+      if(dist < lowest){
         lowest = dist;
         lowestID = i;
       }
       i++;
+    
     }
-    if(lowest < 100000) m_autonCmds.RotateToAngle(aprilTagPositions[i].getRotation().getDegrees(), controller, AutoConstants.kRotationP, AutoConstants.kRotationI, AutoConstants.kRotationD);
+    SmartDashboard.putNumber("Closest ID", lowestID);
+
+    if(lowest < 100000) m_autonCmds.RotateToAngle(aprilTagPositions[lowestID-1].getRotation().getDegrees(), controller, AutoConstants.kRotationP, AutoConstants.kRotationI, AutoConstants.kRotationD);
   }
 
   public void TrackTargetY(XboxController controller){
@@ -371,13 +411,37 @@ public class DriveSubsystem extends SubsystemBase {
   }
   
   void addVisionMeasurement(){
+    LimelightHelpers.SetRobotOrientation("limelight", 
+    pigeon2.getYaw().getValueAsDouble(),0, 
+    0, 0, 
+    0, 0);
+    LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
     LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+    //LimelightHelpers.get
+    if(mt2 == null) return;
+    mt1Field.setRobotPose(mt1.pose);
+    mt2Field.setRobotPose(mt2.pose);
+    
+    //mt1Field.setRobotPose(LimelightHelpers.);
+
+    //Translation2d llOffset = new Translation2d(0, 0);
+    Translation2d llOffset = new Translation2d(0, 0);
+    Translation2d globalLLOffset = llOffset.rotateBy(new Rotation2d(mt2.pose.getRotation().getDegrees()));
+    
     if(Math.abs(getTurnRate()) > 720 || mt2.tagCount == 0) rejectLLupdate = true;
     else rejectLLupdate = false;
-    if(!rejectLLupdate){
-      m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+    if(rejectLLupdate) return;
+    if(mt1.avgTagDist < 0.8){
+      m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5,0.5,9999999));
       m_poseEstimator.addVisionMeasurement(
-            mt2.pose,
+            new Pose2d(mt1.pose.getTranslation().plus(llOffset), mt1.pose.getRotation()),
+            //mt1.pose,
+            mt1.timestampSeconds);
+    }else{
+      m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
+      m_poseEstimator.addVisionMeasurement(
+            new Pose2d(mt2.pose.getTranslation().plus(llOffset), Rotation2d.fromDegrees(getHeading())),
+            //mt2.pose,
             mt2.timestampSeconds);
     }
   } 
@@ -412,7 +476,7 @@ public class DriveSubsystem extends SubsystemBase {
     return DriveConstants.kDriveKinematics.toChassisSpeeds(m_moduleStates);
   }
   public void setChassisSpeeds(ChassisSpeeds chassisSpeeds){
-    setModuleStatesRobotRelative(DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds));
+    setModuleStates(DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds));
   }
 
   /** Resets the drive encoders to currently read a position of 0. */
@@ -425,7 +489,8 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
-    pigeon2.reset();
+    //pigeon2.reset();
+    pigeon2.setYaw(0);
   }
 
   /**
@@ -434,13 +499,17 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return MathUtil.inputModulus(pigeon2.getYaw().getValueAsDouble(), -180, 180); // edit for pigeon
+    //return MathUtil.inputModulus(pigeon2.getYaw().getValueAsDouble(), -180, 180); // edit for pigeon
+    return pigeon2.getYaw().getValueAsDouble(); // edit for pigeon
   }
 
   /**
    * Returns the turn rate of the robot.
    *
-   * @return The turn rate of the robot, in degrees per second
+   * @return The turn rate of the robot, in degrees per +
+   * 
+   * 
+   * cond
    */
   public double getTurnRate() {
     return pigeon2.getAngularVelocityZWorld().getValueAsDouble() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
@@ -449,6 +518,12 @@ public class DriveSubsystem extends SubsystemBase {
 
   public int getTargetID(){
     return (int)LimelightHelpers.getLimelightNTTableEntry("limelight", "tid").getInteger(-31);
+  }
+
+  public void setStartingPose(){
+    m_robotPose = pose_chooser.getSelected();
+    m_poseEstimator.resetPose(m_robotPose);
+    pigeon2.setYaw(m_robotPose.getRotation().getDegrees());
   }
 
   public void initiateDashboard(){
@@ -481,19 +556,19 @@ public class DriveSubsystem extends SubsystemBase {
     );
   }
   public void updateDashboardValues(){
-
+    
   }
 
   public void configureAutoBuilder(){
     AutoBuilder.configure(
-      () -> m_poseEstimator.getEstimatedPosition(),
-      (pose) -> m_poseEstimator.resetPose(pose), 
-      () -> getChassisSpeeds(),
+      this::getPose,
+      this::resetPose, 
+      this::getChassisSpeeds,
       (speeds, feedforwards) -> setChassisSpeeds(speeds), 
       new PPHolonomicDriveController(
-        new PIDConstants(1, 0),
-        new PIDConstants(1, 0)), 
-      config, 
+        new PIDConstants(AutoConstants.kPXController),
+        new PIDConstants(AutoConstants.kPThetaController)),
+      config,
       () -> {
         // Boolean supplier that controls when the path will be mirrored for the red alliance
         // This will flip the path being followed to the red side of the field.
@@ -503,9 +578,10 @@ public class DriveSubsystem extends SubsystemBase {
         if (alliance.isPresent()) {
           return alliance.get() == DriverStation.Alliance.Red;
         }
-        return false;
+        return true;
       }, 
-      this);
+      this
+    );
   }
 
 }

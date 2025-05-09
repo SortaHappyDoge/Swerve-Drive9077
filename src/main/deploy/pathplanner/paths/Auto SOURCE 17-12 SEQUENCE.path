@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 12.094000000000001,
-        "y": 2.3481139681818037
+        "x": 3.99,
+        "y": 2.833
       },
       "prevControl": null,
       "nextControl": {
-        "x": 12.46191915649328,
-        "y": 2.3822554580807083
+        "x": 2.0944780361466053,
+        "y": 1.226005364395214
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 12.557,
-        "y": 2.8300924633944327
+        "x": 1.476,
+        "y": 0.7523918652276268
       },
       "prevControl": {
-        "x": 12.182754757375054,
-        "y": 2.2302987166838184
+        "x": 2.835099880077406,
+        "y": 1.9187611671046838
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,24 +33,24 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Journey Started",
-      "waypointRelativePos": 0.0,
+      "name": "Lower Elevator",
+      "waypointRelativePos": 0.03748047891722996,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Raise Elevator"
+          "name": "Lower Elevator"
         }
       }
     },
     {
-      "name": "Destination Reached",
-      "waypointRelativePos": 0.98,
+      "name": "Load Coral",
+      "waypointRelativePos": 0.5601249349297277,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Unload Coral"
+          "name": "Load Coral"
         }
       }
     }
@@ -65,12 +65,12 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 54.0
   },
   "reversed": false,
-  "folder": "Red Alliance",
+  "folder": null,
   "idealStartingState": {
-    "velocity": 0.0,
+    "velocity": 0,
     "rotation": 59.99999999999999
   },
   "useDefaultConstraints": true

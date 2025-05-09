@@ -7,12 +7,19 @@ package frc.robot;
 import com.pathplanner.lib.commands.PathfindingCommand;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.net.PortForwarder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import frc.robot.Constants.OIConstants;
 
 //import edu.wpi.first.wpilibj2.command.RunCommand;
 /**
@@ -28,7 +35,8 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private AutonomousCommands autonCmds;
   private RobotContainer m_robotContainer;
-
+  public boolean autonHasStarted = false;
+  public int driveMultiplier = -1; // -1 for blue 1 for red
   /**
    * This function is run when the robot is first started up and should be used
    * for any
@@ -39,16 +47,19 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
     // autonomous chooser on the dashboard.
-    enableLiveWindowInTest(true);
+    /*enableLiveWindowInTest(true);
     LiveWindow.setEnabled(true);
-    LiveWindow.enableAllTelemetry();
+    LiveWindow.enableAllTelemetry();*/
 
     m_robotContainer = new RobotContainer();
     autonCmds = m_robotContainer.m_robotDrive.m_autonCmds;
     for (int port = 5800; port <= 5809; port++) {
       PortForwarder.add(port, "limelight.local", port);
     }
+
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    
+    //m_robotContainer.m_robotDrive.setStartingPose();
     PathfindingCommand.warmupCommand().schedule();
   }
 
@@ -71,18 +82,22 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods. This must be called from the
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
-    LiveWindow.updateValues();
+
     CommandScheduler.getInstance().run();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
-    autonCmds.autonState = 0;
   }
 
   @Override
   public void disabledPeriodic() {
+    if(!autonHasStarted){
+      m_robotContainer.m_robotDrive.setStartingPose();
+      if(DriverStation.getAlliance().get() == Alliance.Blue) driveMultiplier = -1;
+      else driveMultiplier = 1;
+    }
   }
 
   /**
@@ -91,14 +106,18 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    //m_robotContainer.m_robotDrive.setStartingPose();
     ////autonCmds.autonState = 1;
-    m_autonomousCommand.schedule();
+    autonHasStarted = true;
+    if(m_autonomousCommand != null){
+      m_autonomousCommand.schedule();
+    }
+    //m_robotContainer.autonomousCommands.scoreCoral(3);
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    //autonCmds.autonSequence();
   }
 
   @Override
@@ -107,17 +126,73 @@ public class Robot extends TimedRobot {
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
     // this line or comment it out.
-    autonCmds.autonState = 0;
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    m_autonomousCommand.schedule();
-
+    //lastAutonPose = new Pose2d(lastAutonPose.getTranslation(), lastAutonPose.getRotation().rotateBy(Rotation2d.k180deg));
+    /*if(lastAutonPose != null)
+    m_robotContainer.m_robotDrive.resetPose(lastAutonPose);*/
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    // Driver 0 Movement
+    /*if(!m_robotContainer.m_elevatorController.getRawButton(1) && !CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand()))
+    new RunCommand(
+            () -> m_robotContainer.m_robotDrive.drive(
+                driveMultiplier*MathUtil.applyDeadband(m_robotContainer.m_driverController.getRightY()*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
+                driveMultiplier*MathUtil.applyDeadband(m_robotContainer.m_driverController.getRightX()*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband((m_robotContainer.m_driverController.getRawAxis(3) - m_robotContainer.m_driverController.getRawAxis(2))*0.5, OIConstants.kDriveDeadband),
+                true),
+            m_robotContainer.m_robotDrive).schedule();
+    else if(!CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand()))*/
+    m_robotContainer.m_robotDrive.setFieldRelative(false);
+    new RunCommand(
+            () -> m_robotContainer.m_robotDrive.drive(
+                -MathUtil.applyDeadband(m_robotContainer.m_elevatorController.getLeftY()*0.3/*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2)*/, OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_robotContainer.m_elevatorController.getLeftX()*0.3/*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2)*/, OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband((m_robotContainer.m_elevatorController.getRawAxis(2))*0.3, OIConstants.kDriveDeadband*3),
+                true),
+            m_robotContainer.m_robotDrive).schedule();
+    //
+
+
+    // Driver 1 Pathfinding
+    /*if(m_robotContainer.m_elevatorController.getRawButtonPressed(8)){
+      try {
+        Command cmd = m_robotContainer.m_robotDrive.m_autonCmds.selectReef(true, m_robotContainer.m_elevatorController, m_robotContainer.m_elevatorController.getPOV());
+        if(cmd != null)
+        cmd.schedule();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+    }
+    if(m_robotContainer.m_elevatorController.getRawButtonPressed(7)){
+      try {
+        Command cmd = m_robotContainer.m_robotDrive.m_autonCmds.selectReef(false, m_robotContainer.m_elevatorController, m_robotContainer.m_elevatorController.getPOV());
+        if(cmd != null)
+        cmd.schedule();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+    }
+
+
+    if(m_robotContainer.m_elevatorController.getRawButtonPressed(12)){
+      try {
+        Command cmd = m_robotContainer.m_robotDrive.m_autonCmds.selectBall(m_robotContainer.m_elevatorController, m_robotContainer.m_elevatorController.getPOV());
+        System.out.print("created ball command");
+        if(cmd != null)
+        cmd.schedule();
+        System.out.print("scheduled ball command");
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+    }
+    //
+    */
+
   }
 
   @Override

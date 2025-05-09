@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 12.094000000000001,
-        "y": 2.3481139681818037
+        "x": 3.7103591626335293,
+        "y": 5.373446408358432
       },
       "prevControl": null,
       "nextControl": {
-        "x": 12.46191915649328,
-        "y": 2.3822554580807083
+        "x": 3.8187318717531933,
+        "y": 5.138840331674097
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 12.557,
-        "y": 2.8300924633944327
+        "x": 3.8523202040961406,
+        "y": 5.126650448083151
       },
       "prevControl": {
-        "x": 12.182754757375054,
-        "y": 2.2302987166838184
+        "x": 3.766698483768982,
+        "y": 5.361531100773443
       },
       "nextControl": null,
       "isLocked": false,
@@ -37,22 +37,30 @@
       "waypointRelativePos": 0.0,
       "endWaypointRelativePos": null,
       "command": {
-        "type": "named",
+        "type": "parallel",
         "data": {
-          "name": "Raise Elevator"
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Ball Level Low"
+              }
+            },
+            {
+              "type": "named",
+              "data": {
+                "name": "Load Ball"
+              }
+            }
+          ]
         }
       }
     },
     {
       "name": "Destination Reached",
-      "waypointRelativePos": 0.98,
+      "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Unload Coral"
-        }
-      }
+      "command": null
     }
   ],
   "globalConstraints": {
@@ -65,13 +73,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": -59.99999999999999
   },
   "reversed": false,
-  "folder": "Red Alliance",
+  "folder": "Blue Alliance",
   "idealStartingState": {
     "velocity": 0.0,
-    "rotation": 59.99999999999999
+    "rotation": -59.99999999999999
   },
   "useDefaultConstraints": true
 }
