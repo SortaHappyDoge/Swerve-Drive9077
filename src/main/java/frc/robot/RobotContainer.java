@@ -79,8 +79,6 @@ public class RobotContainer {
         
     // Configure default commands
     /*m_robotDrive.setDefaultCommand(
-        // The left stick controls translation of the robot.
-        // Turning is controlled by the X axis of the right stick.
         new RunCommand(
             () -> m_robotDrive.drive(
                 -MathUtil.applyDeadband(m_driverController.getRightY()*((m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
@@ -125,13 +123,13 @@ public class RobotContainer {
     //
 
 
-
+    
     // Driver 0
     new JoystickButton(m_driverController, 4)
         .onTrue(new InstantCommand(
             () -> m_robotDrive.zeroHeading(),
             m_robotDrive));
-    new POVButton(m_driverController, 180)
+            new POVButton(m_driverController, 180)
         .onTrue(m_robotDrive.m_armSubsystem.loadCoral(-0.3));
     new POVButton(m_driverController, 0)
         .onTrue(new InstantCommand(()-> m_robotDrive.m_armSubsystem.loadCoralManual(0.3)))
@@ -147,33 +145,38 @@ public class RobotContainer {
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.setDesiredArmRotation(AutoConstants.kReefAngles[5])));
     
     //
-
+    
 
     
     // Elevator Height Setting Driver 1
     new JoystickButton(m_elevatorController, 3)
         .onTrue(m_robotDrive.m_autonCmds.raiseElevatorConditionless(0));
-    new JoystickButton(m_elevatorController, 4)
+        new JoystickButton(m_elevatorController, 4)
         .onTrue(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1));
-    new JoystickButton(m_elevatorController, 5)
+        new JoystickButton(m_elevatorController, 5)
         .onTrue(m_robotDrive.m_autonCmds.raiseElevatorConditionless(2));
-    new JoystickButton(m_elevatorController, 6)
+        new JoystickButton(m_elevatorController, 6)
         .onTrue(m_robotDrive.m_autonCmds.raiseElevatorConditionless(3));
         
-    /*
+    
     new JoystickButton(m_elevatorController, 11)
         .onTrue(new InstantCommand(() -> m_robotDrive.m_elevator.setDesiredHeight(AutoConstants.kBallHeights[1])))
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.setDesiredArmRotation(AutoConstants.kReefAngles[4])))
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.loadCoralManual(0.4)));
     new JoystickButton(m_elevatorController, 12)
-        .onTrue(new InstantCommand(() -> m_robotDrive.m_elevator.setDesiredHeight(AutoConstants.kBallHeights[2])))
+    .onTrue(new InstantCommand(() -> m_robotDrive.m_elevator.setDesiredHeight(AutoConstants.kBallHeights[2])))
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.setDesiredArmRotation(AutoConstants.kReefAngles[4])))
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.loadCoralManual(0.4)));
-    */
-    //
+        
+    /*new JoystickButton(m_elevatorController, 12)
+        .onTrue(new InstantCommand(
+            () -> m_robotDrive.zeroHeading(),
+            m_robotDrive));*/
+        
+        //
     
         
-        
+    
     // Arm Roller Settings Driver 1
     new JoystickButton(m_elevatorController, 10)     // Roll coral back / Intake Ball
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.loadCoralManual(0.3)));
@@ -181,8 +184,8 @@ public class RobotContainer {
     new JoystickButton(m_elevatorController, 2)     // Intake Coral / Drop Ball
         .onTrue(new InstantCommand(() -> m_robotDrive.m_armSubsystem.loadCoralManual(-0.3)))
         .onFalse(new InstantCommand(() -> m_robotDrive.m_armSubsystem.loadCoralManual(0)));
-    new JoystickButton(m_elevatorController, 8)
-        .onTrue(m_robotDrive.m_armSubsystem.loadCoral(-0.3));
+    /*new JoystickButton(m_elevatorController, 8)
+        .onTrue(m_robotDrive.m_armSubsystem.loadCoral(-0.3));*/
     //
 
 
@@ -194,83 +197,83 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    boolean isBlu;
-    try{
-        isBlu = DriverStation.getAlliance().get() == Alliance.Blue;
+      Pose2d pose = m_robotDrive.getStartingPose();
+      System.out.println("Auton Command");
+    
+    // Blue Alliance Middle Starting Pose Auton
+    if (pose == AutoConstants.kStartingPoses[1]) {
+        System.out.println("Blue Middle auton");
+        return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.pathfindToReef(21, false, true))
+            .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
     }
-    catch(Exception e){
-        isBlu = true;
+    // Blue Alliance Left Starting Pose Auton
+    else if (pose == AutoConstants.kStartingPoses[0]) {
+        System.out.println("Blue Left auton");
+        return new WaitCommand(0)
+                .andThen(m_robotDrive.m_autonCmds.pathfindToReef(20, true, true))
+                .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
+                .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, true, true))
+                .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
+                .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, false, true))
+                .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
     }
-    isBlu = true;
-    return 
-        new WaitCommand(0)
-        // Left 2 coral closer end
-        
-        /*.andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, false, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, true, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        
 
-        // Left 2 one far one closer end
-        /*
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(20, true, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, true, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        */
-        
-        // Right 2 coral closer end
-        /*
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, true, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, false, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        */
+      // Blue Alliance Right Starting Pose Auton
+      else if (pose == AutoConstants.kStartingPoses[2]) {
+        System.out.println("Blue Right auton");
+        return new WaitCommand(0)
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(22, false, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, false, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
+      }
 
-        // Right 2 one far one closer end
-        /*
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(22, true, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, false, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, false, isBlu))
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        */
+      // Red Alliance Right Starting Pose Auton
+      else if (pose == AutoConstants.kStartingPoses[3]) {
+          return new WaitCommand(0)
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(20, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, false, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
+      }
 
-        // Middle
-        /*
-        .andThen(m_robotDrive.m_armSubsystem.loadCoral(-0.3))
-        .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(1))
-        .andThen(m_robotDrive.m_autonCmds.pathfindToReef(21, false, isBlu))
-        .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
-        */
-        ; 
-    }
+      // Red Alliance Right Starting Pose Auton
+      else if (pose == AutoConstants.kStartingPoses[4]) {
+          return new WaitCommand(0)
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(21, false, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
+      }
+
+      // Red Alliance Right Starting Pose Auton
+      else {
+          return new WaitCommand(0)
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(22, false, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
+                  .andThen(m_robotDrive.m_autonCmds.loadCoral())
+                  .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, false, true))
+                  .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
+      }
+  }
 }

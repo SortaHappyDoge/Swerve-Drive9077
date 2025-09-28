@@ -61,7 +61,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 public class DriveSubsystem extends SubsystemBase {
   RobotConfig config;
-  SendableChooser<Pose2d> pose_chooser = new SendableChooser<>();
+  public SendableChooser<Pose2d> pose_chooser = new SendableChooser<>();
   Field2d mt1Field = new Field2d();
   Field2d mt2Field = new Field2d();
   
@@ -520,9 +520,12 @@ public class DriveSubsystem extends SubsystemBase {
     return (int)LimelightHelpers.getLimelightNTTableEntry("limelight", "tid").getInteger(-31);
   }
 
+  public Pose2d getStartingPose(){
+    return pose_chooser.getSelected();
+  }
   public void setStartingPose(){
-    m_robotPose = pose_chooser.getSelected();
-    m_poseEstimator.resetPose(m_robotPose);
+    //m_robotPose = pose_chooser.getSelected();
+    m_poseEstimator.resetPose(getStartingPose());
     pigeon2.setYaw(m_robotPose.getRotation().getDegrees());
   }
 

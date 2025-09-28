@@ -57,7 +57,6 @@ public class Robot extends TimedRobot {
       PortForwarder.add(port, "limelight.local", port);
     }
 
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     
     //m_robotContainer.m_robotDrive.setStartingPose();
     PathfindingCommand.warmupCommand().schedule();
@@ -108,6 +107,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     //m_robotContainer.m_robotDrive.setStartingPose();
     ////autonCmds.autonState = 1;
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     autonHasStarted = true;
     if(m_autonomousCommand != null){
       m_autonomousCommand.schedule();
@@ -137,29 +137,29 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    /*
     // Driver 0 Movement
-    /*if(!m_robotContainer.m_elevatorController.getRawButton(1) && !CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand()))
-    new RunCommand(
+    if(!m_robotContainer.m_elevatorController.getRawButton(1) && !CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand())){
+      new RunCommand(
             () -> m_robotContainer.m_robotDrive.drive(
                 driveMultiplier*MathUtil.applyDeadband(m_robotContainer.m_driverController.getRightY()*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
                 driveMultiplier*MathUtil.applyDeadband(m_robotContainer.m_driverController.getRightX()*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
                 -MathUtil.applyDeadband((m_robotContainer.m_driverController.getRawAxis(3) - m_robotContainer.m_driverController.getRawAxis(2))*0.5, OIConstants.kDriveDeadband),
                 true),
-            m_robotContainer.m_robotDrive).schedule();
-    else if(!CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand()))*/
-    m_robotContainer.m_robotDrive.setFieldRelative(false);
+            m_robotContainer.m_robotDrive).schedule();}
+    else if(!CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand())){
     new RunCommand(
             () -> m_robotContainer.m_robotDrive.drive(
-                -MathUtil.applyDeadband(m_robotContainer.m_elevatorController.getLeftY()*0.3/*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2)*/, OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(m_robotContainer.m_elevatorController.getLeftX()*0.3/*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2)*/, OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_robotContainer.m_elevatorController.getLeftY()*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_robotContainer.m_elevatorController.getLeftX()*((m_robotContainer.m_elevatorController.getRawAxis(3)*(-1)+1)/2), OIConstants.kDriveDeadband),
                 -MathUtil.applyDeadband((m_robotContainer.m_elevatorController.getRawAxis(2))*0.3, OIConstants.kDriveDeadband*3),
                 true),
-            m_robotContainer.m_robotDrive).schedule();
+            m_robotContainer.m_robotDrive).schedule();}
     //
-
+      */
 
     // Driver 1 Pathfinding
-    /*if(m_robotContainer.m_elevatorController.getRawButtonPressed(8)){
+    if(m_robotContainer.m_elevatorController.getRawButtonPressed(8)){
       try {
         Command cmd = m_robotContainer.m_robotDrive.m_autonCmds.selectReef(true, m_robotContainer.m_elevatorController, m_robotContainer.m_elevatorController.getPOV());
         if(cmd != null)
@@ -179,7 +179,7 @@ public class Robot extends TimedRobot {
     }
 
 
-    if(m_robotContainer.m_elevatorController.getRawButtonPressed(12)){
+    /*if(m_robotContainer.m_elevatorController.getRawButtonPressed(12)){
       try {
         Command cmd = m_robotContainer.m_robotDrive.m_autonCmds.selectBall(m_robotContainer.m_elevatorController, m_robotContainer.m_elevatorController.getPOV());
         System.out.print("created ball command");
