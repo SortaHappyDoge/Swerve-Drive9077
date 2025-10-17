@@ -13,6 +13,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -88,7 +90,13 @@ public class RobotContainer {
                 -MathUtil.applyDeadband((m_driverController.getRawAxis(3) - m_driverController.getRawAxis(2))*0.5, OIConstants.kDriveDeadband),
                 true),
             m_robotDrive));*/
-        
+    SmartDashboard.putData("Timer", 
+    new Sendable(){
+        @Override
+        public void initSendable(SendableBuilder builder){
+            builder.addDoubleProperty("Time Left", () -> DriverStation.getMatchTime(), null);
+        }    
+    });
     SmartDashboard.putData("Robot Field", m_field);
     SmartDashboard.putData("Pathplanner Field", nav_field);
     PathPlannerLogging.setLogCurrentPoseCallback((pose) -> {
