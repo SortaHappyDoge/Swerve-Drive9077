@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.113603183411579,
-        "y": 2.6119560826636223
+        "x": 5.121314665936797,
+        "y": 2.5936732000846656
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.953740863551335,
-        "y": 2.9088960721765966
+        "x": 4.961452346076554,
+        "y": 2.89061318959764
       },
       "isLocked": false,
       "linkedName": null
@@ -36,7 +36,12 @@
       "name": "Journey Started",
       "waypointRelativePos": 0.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Ready"
+        }
+      }
     },
     {
       "name": "Destination Reached",
@@ -58,9 +63,9 @@
     "rotation": 119.99999999999999
   },
   "reversed": false,
-  "folder": "Blue Alliance",
+  "folder": null,
   "idealStartingState": {
-    "velocity": 0.0,
+    "velocity": 1.5,
     "rotation": 119.99999999999999
   },
   "useDefaultConstraints": true

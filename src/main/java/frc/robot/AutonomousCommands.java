@@ -11,6 +11,9 @@ import org.opencv.core.RotatedRect;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
@@ -26,6 +29,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -161,16 +165,8 @@ public class AutonomousCommands {
 
     public AutonomousCommands(DriveSubsystem driveSubsystem){
         this.m_robotDrive = driveSubsystem;
-        NamedCommands.registerCommand("Ready Elevator", readyElevator());
-        NamedCommands.registerCommand("Raise Elevator 3", raiseElevatorConditionless(3));
-        NamedCommands.registerCommand("Lower Elevator", raiseElevatorConditionless(0));
-        NamedCommands.registerCommand("Load Coral", loadCoral());
-        NamedCommands.registerCommand("Unload Coral", unloadCoralAuton());
-        //NamedCommands.registerCommand("Unload Conditioned", unloadCoralConditioned());
-        NamedCommands.registerCommand("Ball Level Low", raiseElevatorBalls(1));
-        NamedCommands.registerCommand("Ball Level High", raiseElevatorBalls(2));
-        NamedCommands.registerCommand("Load Ball", new InstantCommand(() -> {m_robotDrive.m_armSubsystem.loadCoralManual(0.3);}));
-
+        //new EventTrigger("Journey Started").onTrue(autonReadyElevator());
+        NamedCommands.registerCommand("Ready", autonReadyElevator());
 
         rotationPIDController.setPID(AutoConstants.kRotationP, AutoConstants.kRotationI, AutoConstants.kRotationD);
         rotationPIDController.enableContinuousInput(-180, 180);
@@ -179,25 +175,6 @@ public class AutonomousCommands {
         coralAdjustmentPIDController.setPID(ModuleConstants.qtrPID[0], ModuleConstants.qtrPID[1], ModuleConstants.qtrPID[2]);
 
         try {
-            /*ID6SCORE_R = PathPlannerPath.fromPathFile("ID 6 SCORE R");
-            ID6SCORE_L = PathPlannerPath.fromPathFile("ID 6 SCORE L");
-            ID7SCORE_R = PathPlannerPath.fromPathFile("ID 7 SCORE R");
-            ID7SCORE_L = PathPlannerPath.fromPathFile("ID 7 SCORE L");
-            ID8SCORE_R = PathPlannerPath.fromPathFile("ID 8 SCORE R");
-            ID8SCORE_L = PathPlannerPath.fromPathFile("ID 8 SCORE L");
-            ID9SCORE_R = PathPlannerPath.fromPathFile("ID 9 SCORE R");
-            ID9SCORE_L = PathPlannerPath.fromPathFile("ID 9 SCORE L");
-            ID10SCORE_R = PathPlannerPath.fromPathFile("ID 10 SCORE R");
-            ID10SCORE_L = PathPlannerPath.fromPathFile("ID 10 SCORE L");
-            ID11SCORE_R = PathPlannerPath.fromPathFile("ID 11 SCORE R");
-            ID11SCORE_L = PathPlannerPath.fromPathFile("ID 11 SCORE L");
-            ID6BALL = PathPlannerPath.fromPathFile("ID 6 BALL");
-            ID7BALL = PathPlannerPath.fromPathFile("ID 7 BALL");
-            ID8BALL = PathPlannerPath.fromPathFile("ID 8 BALL");
-            ID9BALL = PathPlannerPath.fromPathFile("ID 9 BALL");
-            ID10BALL = PathPlannerPath.fromPathFile("ID 10 BALL");
-            ID11BALL = PathPlannerPath.fromPathFile("ID 11 BALL");*/
-            
             ID12SOURCE = PathPlannerPath.fromPathFile("ID 12 SOURCE");
             ID13SOURCE = PathPlannerPath.fromPathFile("ID 13 SOURCE");
             ID17SCORE_R = PathPlannerPath.fromPathFile("ID 17 SCORE R");
@@ -212,24 +189,10 @@ public class AutonomousCommands {
             ID21SCORE_L = PathPlannerPath.fromPathFile("ID 21 SCORE L");
             ID22SCORE_R = PathPlannerPath.fromPathFile("ID 22 SCORE R");
             ID22SCORE_L = PathPlannerPath.fromPathFile("ID 22 SCORE L");
-            ID17BALL = PathPlannerPath.fromPathFile("ID 17 BALL");
-            ID18BALL = PathPlannerPath.fromPathFile("ID 18 BALL");
-            ID19BALL = PathPlannerPath.fromPathFile("ID 19 BALL");
-            ID20BALL = PathPlannerPath.fromPathFile("ID 20 BALL");
-            ID21BALL = PathPlannerPath.fromPathFile("ID 21 BALL");
-            ID22BALL = PathPlannerPath.fromPathFile("ID 22 BALL");
-
-
-            AUTO_ID22LSEQUENCE = PathPlannerPath.fromPathFile("Auto SCORE ID 22 L SEQUENCE");
-            AUTO_ID22to12LSEQUENCE = PathPlannerPath.fromPathFile("Auto SOURCE 22-12 SEQUENCE");
-            AUTO_ID17RSEQUENCE = PathPlannerPath.fromPathFile("Auto SCORE ID 17 R SEQUENCE");
-            AUTO_ID17to12LSEQUENCE = PathPlannerPath.fromPathFile("Auto SOURCE 17-12 SEQUENCE");
-            AUTO_ID17LSEQUENCE = PathPlannerPath.fromPathFile("Auto SCORE ID 17 L SEQUENCE");
         } catch (Exception e) {
             System.out.print(e);
         }
-
-
+        if(!AutoBuilder.isConfigured()){configureAutoBuilder();}
         initiateDashboard();
     }
 
@@ -499,7 +462,7 @@ public class AutonomousCommands {
 
     public Command unloadCoralAuton(){
         FunctionalCommand cmd = new FunctionalCommand(
-            () -> {unloadCoral().schedule();}, 
+            () -> {unloadCoral().schedule();},
             () -> {}, 
             interrupted -> {},
             () -> {return true;},
@@ -514,9 +477,8 @@ public class AutonomousCommands {
             interrupted -> {
                 m_robotDrive.m_armSubsystem.loadCoralManual(0);
                 m_robotDrive.m_armSubsystem.setDesiredArmRotation(ModuleConstants.kArmMinBlockedMaxRotations[1]);
-                m_robotDrive.m_elevator.setDesiredHeight(0);
             },
-            () -> {return Timer.getFPGATimestamp() - time > 0.5;},
+            () -> {return Timer.getFPGATimestamp() - time > 0.25;},
             m_robotDrive.m_armSubsystem);
         
         return cmd;
@@ -570,12 +532,23 @@ public class AutonomousCommands {
     }
     public Command readyElevator(){
         FunctionalCommand readyElevator = new FunctionalCommand(
-            () -> {raiseElevatorConditionless(4);}, 
+            () -> {raiseElevatorConditionless(3);}, 
             () -> {},
             interrupted -> {},
             () -> {return true;},
             m_robotDrive.m_elevator);
         return readyElevator;
+    }
+    public Command autonReadyElevator(){
+        System.out.println("Try ready elevator");
+        if(DriverStation.isAutonomous()){
+            System.out.println("ready elevator auton");
+            return raiseElevatorConditionless(3);
+        }
+        else{
+            System.out.println("dont ready elevator auton");
+            return new WaitCommand(0);
+        }
     }
     public Command raiseElevatorBalls(int level){
         FunctionalCommand raise = new FunctionalCommand(
@@ -594,12 +567,40 @@ public class AutonomousCommands {
     public Command scoreCoral(int level){
         Command cmd = raiseElevator(level);
         Command cmd2 = unloadCoral();
-        Command cmd3 = raiseElevator(0);
+        Command cmd3 = raiseElevatorConditionless(0);
         Command cmd4 = new InstantCommand(() -> m_robotDrive.m_armSubsystem.setDesiredArmRotation(0));
         return cmd.andThen(cmd2).andThen(cmd3).andThen(cmd4);
     }
 
     public void setupPathPlannerCommands(){
-        
     }
+
+
+    public void configureAutoBuilder(){
+    System.out.println("AutoBuilder configured...");
+    System.out.println(this);
+    AutoBuilder.configure(
+      m_robotDrive::getPose,
+      m_robotDrive::resetPose, 
+      m_robotDrive::getChassisSpeeds,
+      (speeds, feedforwards) -> m_robotDrive.setChassisSpeeds(speeds), 
+      new PPHolonomicDriveController(
+        new PIDConstants(AutoConstants.kPXController),
+        new PIDConstants(AutoConstants.kPThetaController)
+        ),
+        m_robotDrive.config,
+      () -> {
+        // Boolean supplier that controls when the path will be mirrored for the red alliance
+        // This will flip the path being followed to the red side of the field.
+        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return true;
+      }, 
+      m_robotDrive
+    );
+  }
 }

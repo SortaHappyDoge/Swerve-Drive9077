@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.5482751442361535,
-        "y": 0.991232155349287
+        "x": 1.5138821386087198,
+        "y": 0.9705961173204969
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.2617743892985331,
-        "y": 0.6153158278108557
+        "x": 1.2273813836710994,
+        "y": 0.5946797897820656
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.3788558325172782,
-        "y": 0.7564653948245598
+        "x": 1.385607516878714,
+        "y": 0.7939159779565272
       },
       "prevControl": {
-        "x": 1.7131403056661567,
-        "y": 1.181444058440023
+        "x": 1.7198919900275926,
+        "y": 1.2188946415719906
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Journey Started",
+      "name": "Intake Coral",
       "waypointRelativePos": 0.0,
       "endWaypointRelativePos": null,
       "command": null
@@ -58,9 +58,9 @@
     "rotation": 54.0
   },
   "reversed": false,
-  "folder": "Blue Alliance",
+  "folder": null,
   "idealStartingState": {
-    "velocity": 0.0,
+    "velocity": 1.2,
     "rotation": 54.0
   },
   "useDefaultConstraints": true

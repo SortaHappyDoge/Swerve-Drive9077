@@ -42,7 +42,10 @@ import java.time.Instant;
 import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
@@ -59,12 +62,11 @@ import com.pathplanner.lib.util.PathPlannerLogging;
  */
 public class RobotContainer {
   // The robot's subsystems
-  public final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  public final AutonomousCommands autonomousCommands = new AutonomousCommands(m_robotDrive); // Pass m_robotDrive
+  public final DriveSubsystem m_robotDrive;
+  public final AutonomousCommands autonomousCommands; // Pass m_robotDrive
   // The driver's controller
   public XboxController m_driverController = new XboxController(1);
   public XboxController m_elevatorController = new XboxController(0);
-  private final SendableChooser<Command> autoChooser;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -72,8 +74,8 @@ public class RobotContainer {
   public static Field2d nav_field = new Field2d();
   public static Field2d m_field = new Field2d();
   public RobotContainer() {
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Chooser", autoChooser);
+    m_robotDrive = new DriveSubsystem();
+    autonomousCommands = new AutonomousCommands(m_robotDrive);
     // Configure the button bindings
     configureButtonBindings();
         
@@ -104,6 +106,8 @@ public class RobotContainer {
         // Do whatever you want with the poses here
         nav_field.getObject("path").setPoses(poses);
     });
+
+    PathfindingCommand.warmupCommand().schedule();
   }
 
   /**
@@ -125,10 +129,10 @@ public class RobotContainer {
 
     
     // Driver 0
-    new JoystickButton(m_driverController, 4)
+    /*new JoystickButton(m_driverController, 4)
         .onTrue(new InstantCommand(
             () -> m_robotDrive.zeroHeading(),
-            m_robotDrive));
+            m_robotDrive));*/
             new POVButton(m_driverController, 180)
         .onTrue(m_robotDrive.m_armSubsystem.loadCoral(-0.3));
     new POVButton(m_driverController, 0)
@@ -204,6 +208,7 @@ public class RobotContainer {
     if (pose == AutoConstants.kStartingPoses[1]) {
         System.out.println("Blue Middle auton");
         return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
             .andThen(m_robotDrive.m_autonCmds.pathfindToReef(21, false, true))
             .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
     }
@@ -211,14 +216,17 @@ public class RobotContainer {
     else if (pose == AutoConstants.kStartingPoses[0]) {
         System.out.println("Blue Left auton");
         return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                 .andThen(m_robotDrive.m_autonCmds.pathfindToReef(20, true, true))
                 .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                 .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
                 .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                 .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, true, true))
                 .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                 .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
                 .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))   
                 .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, false, true))
                 .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
     }
@@ -227,14 +235,17 @@ public class RobotContainer {
       else if (pose == AutoConstants.kStartingPoses[2]) {
         System.out.println("Blue Right auton");
         return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(22, false, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
                   .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, true, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
                   .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, false, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
       }
@@ -242,14 +253,17 @@ public class RobotContainer {
       // Red Alliance Right Starting Pose Auton
       else if (pose == AutoConstants.kStartingPoses[3]) {
           return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(20, true, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
                   .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, true, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(13, true, true))
                   .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(19, false, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
       }
@@ -257,6 +271,7 @@ public class RobotContainer {
       // Red Alliance Right Starting Pose Auton
       else if (pose == AutoConstants.kStartingPoses[4]) {
           return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(21, false, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
       }
@@ -264,14 +279,17 @@ public class RobotContainer {
       // Red Alliance Right Starting Pose Auton
       else {
           return new WaitCommand(0)
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(22, false, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
                   .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, true, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3))
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(12, true, true))
                   .andThen(m_robotDrive.m_autonCmds.loadCoral())
+            .andThen(m_robotDrive.m_autonCmds.raiseElevatorConditionless(6))      
                   .andThen(m_robotDrive.m_autonCmds.pathfindToReef(17, false, true))
                   .andThen(m_robotDrive.m_autonCmds.scoreCoral(3));
       }

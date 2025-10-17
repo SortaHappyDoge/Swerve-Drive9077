@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.021591696575727,
-        "y": 3.85559908345214
+        "x": 6.044363146026609,
+        "y": 3.859521510526022
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.652493693121885,
-        "y": 3.8279289615279577
+        "x": 5.757856998485624,
+        "y": 3.861919051509628
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.758769467224625,
-        "y": 3.857221442892579
+        "x": 5.755941896508299,
+        "y": 3.8614025142245936
       },
       "prevControl": {
-        "x": 6.2219780435167635,
-        "y": 3.913971106214726
+        "x": 6.044363146026609,
+        "y": 3.8583227400342177
       },
       "nextControl": null,
       "isLocked": false,
@@ -39,7 +39,7 @@
       "command": {
         "type": "named",
         "data": {
-          "name": "Ready Elevator"
+          "name": "Ready"
         }
       }
     },
@@ -63,9 +63,9 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Blue Alliance",
+  "folder": null,
   "idealStartingState": {
-    "velocity": 0.0,
+    "velocity": 1.2,
     "rotation": 180.0
   },
   "useDefaultConstraints": true

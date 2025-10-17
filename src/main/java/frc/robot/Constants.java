@@ -130,8 +130,8 @@ public final class Constants {
     public static final int kDrivingMotorCurrentLimit = 50; // amps
     public static final int kTurningMotorCurrentLimit = 20; // amps
 
-    public static final double kElevatorMotorSpeedMultiplier = 0.8; // between 0 and 1
-    public static final double kElevatorMotorSpeedRampRate = 0.3; // the time (in seconds) for the motor to ramp up from 0% speed to 100%
+    public static final double kElevatorMotorSpeedMultiplier = 0.9; // between 0 and 1
+    public static final double kElevatorMotorSpeedRampRate = 0.15; // the time (in seconds) for the motor to ramp up from 0% speed to 100%
     public static final double kArmMotorSpeedMultiplier = 0.4; // between 0 and 1 0.44
     public static final double kArmMotorSpeedRampRate = 0.1; // the time (in seconds) for the motor to ramp up from 0% speed to 100%
 
@@ -184,7 +184,7 @@ public final class Constants {
     public static final double kRollerWheelFreeSpeedRPS = (NeoMotorConstants.kFreeSpeedRpm * kRollerMotorReduction) / 60;
     public static final double kMaxRollerSpeedRPM = NeoMotorConstants.kFreeSpeedRpm * -0.2;
 
-    public static final double[] kElevatorPIDUp = {7, 0, 0.7}; // PID settings for the elevator
+    public static final double[] kElevatorPIDUp = {6, 0, 0.5}; // PID settings for the elevator
     public static final double[] kElevatorPIDDown = {1.25, 0, 0.05}; // PID settings for the elevator
     public static final double kElevatorIZone = 0;
     public static final double kElevatorPIDTolerance = 0.01; // PID tolerance in cm error
@@ -220,12 +220,12 @@ public final class Constants {
 
     public static final PathConstraints kPathfindingConstraints = new PathConstraints(
       kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared,
-       kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+      kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-    public static final double[] kReefHeights = {0, 0.285, 0.67, 1.33, 0.15}; // L1, L2, L3, L4 and Ready Stance respectively (in meters) (for elevator)
+    public static final double[] kReefHeights = {0, 0.285, 0.67, 1.33, 0.15, 0, 0.45}; // L1, L2, L3, L4 and Ready Stance respectively (in meters) (for elevator)
     public static final double[] kBallHeights = {0.25, 0.63, 1}; // Lower and higher algae respectively (in meters) (for elevator)
     public static final double kHeightTolerance = 0.03;
-    public static final double[] kReefAngles = {ModuleConstants.kArmMinBlockedMaxRotations[0], ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[1] + 10, 180, 200}; // L1, L2, L3 , L4 and ball respectively (in degrees) (for arm)
+    public static final double[] kReefAngles = {ModuleConstants.kArmMinBlockedMaxRotations[0], ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[1], ModuleConstants.kArmMinBlockedMaxRotations[1] + 10, 180, 200, ModuleConstants.kArmMinBlockedMaxRotations[1]}; // L1, L2, L3 , L4 and ball respectively (in degrees) (for arm)
 
 
     // x min 0 max 17.54,y min 0 max 0.805

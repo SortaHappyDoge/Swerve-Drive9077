@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathfindingCommand;
 
 import edu.wpi.first.math.MathUtil;
@@ -20,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.Constants.OIConstants;
+import frc.robot.subsystems.DriveSubsystem;
 
 //import edu.wpi.first.wpilibj2.command.RunCommand;
 /**
@@ -33,9 +35,8 @@ import frc.robot.Constants.OIConstants;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  private AutonomousCommands autonCmds;
   private RobotContainer m_robotContainer;
-  public boolean autonHasStarted = false;
+  public static boolean autonHasStarted = false;
   public int driveMultiplier = -1; // -1 for blue 1 for red
   /**
    * This function is run when the robot is first started up and should be used
@@ -52,14 +53,13 @@ public class Robot extends TimedRobot {
     LiveWindow.enableAllTelemetry();*/
 
     m_robotContainer = new RobotContainer();
-    autonCmds = m_robotContainer.m_robotDrive.m_autonCmds;
+
     for (int port = 5800; port <= 5809; port++) {
       PortForwarder.add(port, "limelight.local", port);
     }
 
     
     //m_robotContainer.m_robotDrive.setStartingPose();
-    PathfindingCommand.warmupCommand().schedule();
   }
 
   /**
@@ -81,7 +81,6 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods. This must be called from the
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
-
     CommandScheduler.getInstance().run();
   }
 
@@ -137,7 +136,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    /*
+    
     // Driver 0 Movement
     if(!m_robotContainer.m_elevatorController.getRawButton(1) && !CommandScheduler.getInstance().isScheduled(m_robotContainer.m_robotDrive.getCurrentCommand())){
       new RunCommand(
@@ -156,7 +155,6 @@ public class Robot extends TimedRobot {
                 true),
             m_robotContainer.m_robotDrive).schedule();}
     //
-      */
 
     // Driver 1 Pathfinding
     if(m_robotContainer.m_elevatorController.getRawButtonPressed(8)){

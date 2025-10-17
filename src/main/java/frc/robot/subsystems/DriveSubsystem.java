@@ -35,12 +35,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.AutonomousCommands;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.LimelightHelpers.LimelightResults;
 import frc.utils.SwerveUtils;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import java.io.Serial;
@@ -60,7 +62,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 public class DriveSubsystem extends SubsystemBase {
-  RobotConfig config;
+  public RobotConfig config;
   public SendableChooser<Pose2d> pose_chooser = new SendableChooser<>();
   Field2d mt1Field = new Field2d();
   Field2d mt2Field = new Field2d();
@@ -101,7 +103,7 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_currentTranslationMag = 0.0;
   public Pose2d m_robotPose; // Pose of the robot compared to the field 
   private SwerveDrivePoseEstimator m_poseEstimator;
-  boolean zeroPoseWithLL = true;
+  public static boolean zeroPoseWithLL = false;
   boolean rejectLLupdate = false;
 
   private SlewRateLimiter m_magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
@@ -214,7 +216,6 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putData("Megatag2", mt2Field);
 
     
-    configureAutoBuilder();
     initiateDashboard();
   }
 
@@ -411,6 +412,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
   
   void addVisionMeasurement(){
+    if(DriverStation.isDisabled()&&!zeroPoseWithLL) return;
     LimelightHelpers.SetRobotOrientation("limelight", 
     pigeon2.getYaw().getValueAsDouble(),0, 
     0, 0, 
@@ -419,29 +421,28 @@ public class DriveSubsystem extends SubsystemBase {
     LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
     //LimelightHelpers.get
     if(mt2 == null) return;
-    mt1Field.setRobotPose(mt1.pose);
-    mt2Field.setRobotPose(mt2.pose);
-    
-    //mt1Field.setRobotPose(LimelightHelpers.);
 
-    //Translation2d llOffset = new Translation2d(0, 0);
-    Translation2d llOffset = new Translation2d(0, 0);
-    Translation2d globalLLOffset = llOffset.rotateBy(new Rotation2d(mt2.pose.getRotation().getDegrees()));
     
     if(Math.abs(getTurnRate()) > 720 || mt2.tagCount == 0) rejectLLupdate = true;
     else rejectLLupdate = false;
     if(rejectLLupdate) return;
-    if(mt1.avgTagDist < 0.8){
+    if(mt2.avgTagDist < 0.5 && DriverStation.isTeleop() && Math.abs(getTurnRate()) < 5){
       m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5,0.5,9999999));
       m_poseEstimator.addVisionMeasurement(
-            new Pose2d(mt1.pose.getTranslation().plus(llOffset), mt1.pose.getRotation()),
-            //mt1.pose,
+            mt1.pose,
             mt1.timestampSeconds);
+      try {
+        m_robotPose = getPose();
+        pigeon2.setYaw(mt1.pose.getRotation().getDegrees());
+        
+      } catch (Exception e) {
+        System.out.println("smth wrong with mt1");
+        throw(e);
+      }
     }else{
       m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
       m_poseEstimator.addVisionMeasurement(
-            new Pose2d(mt2.pose.getTranslation().plus(llOffset), Rotation2d.fromDegrees(getHeading())),
-            //mt2.pose,
+            new Pose2d(mt2.pose.getTranslation(), Rotation2d.fromDegrees(getHeading())),
             mt2.timestampSeconds);
     }
   } 
@@ -526,7 +527,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void setStartingPose(){
     //m_robotPose = pose_chooser.getSelected();
     m_poseEstimator.resetPose(getStartingPose());
-    pigeon2.setYaw(m_robotPose.getRotation().getDegrees());
+    pigeon2.setYaw(m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
   }
 
   public void initiateDashboard(){
@@ -562,7 +563,7 @@ public class DriveSubsystem extends SubsystemBase {
     
   }
 
-  public void configureAutoBuilder(){
+  /*public void configureAutoBuilder(){
     AutoBuilder.configure(
       this::getPose,
       this::resetPose, 
@@ -585,6 +586,5 @@ public class DriveSubsystem extends SubsystemBase {
       }, 
       this
     );
-  }
-
+  }*/
 }
